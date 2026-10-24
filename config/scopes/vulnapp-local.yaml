@@ -1,0 +1,69 @@
+# Example: local source-code audit of the bundled training fixture (offline).
+scope_version: 1
+assessment:
+  id: vulnapp-local
+  name: vulnapp training fixture (local, offline)
+  type: [source_code, dependency_analysis, api_spec]
+  config_version: 1
+authorization:
+  status: authorized
+  basis: training_lab
+  authorized_by: fixture owner (this repository)
+targets:
+  local_paths:
+    - {id: vulnapp, path: ../../fixtures/vulnapp, description: intentionally vulnerable training app}
+exclusions:
+  source_globs: []
+limits:
+  max_http_requests: 0
+# Organization-specific context for BUSINESS PRIORITY only (never changes technical severity).
+# For a real target, copy asset tiers / severity tables from the program policy, or have the
+# owner fill this in. Agents cannot edit this file. Remove the block => business priority
+# is reported as "not assessed".
+business_context:
+  source: owner_provided
+  source_ref: fixtures/vulnapp/README.md (training fixture; values are illustrative)
+  organization: vulnapp (fictional shop)
+  program_severity:
+    scale: custom
+    category_ratings:
+      sql-injection: critical
+      idor: high
+      missing-authorization: high
+      business-logic: medium
+      hardcoded-secret: high
+      missing-security-header: informational
+    out_of_scope_impacts: [missing-security-header]
+  assets:
+    - id: shop-api
+      description: customer-facing shop and billing API
+      match: {target_ids: [vulnapp], path_prefixes: [app/, openapi.yaml]}
+      criticality: critical
+      data_classes: [pii, payment, credentials, authentication]
+      environment: production
+      internet_exposed: true
+    - id: vault-contract
+      match: {target_ids: [vulnapp], path_prefixes: [contracts/]}
+      criticality: high
+      data_classes: [funds]
+      environment: production
+      internet_exposed: true
+    - id: test-suite
+      match: {target_ids: [vulnapp], path_prefixes: [tests/]}
+      criticality: low
+      data_classes: [none]
+      environment: test
+      internet_exposed: false
+    - id: build-and-ci
+      match: {target_ids: [vulnapp], path_prefixes: [.github/, Dockerfile, package.json, package-lock.json, requirements.txt]}
+      criticality: medium
+      max_severity: high
+      data_classes: [secrets]
+      environment: production
+      internet_exposed: false
+    - id: shop-other
+      description: everything else in the repository
+      match: {target_ids: [vulnapp]}
+      criticality: medium
+      data_classes: [internal]
+      environment: unknown

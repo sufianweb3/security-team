@@ -1,0 +1,6 @@
+{"adjustment": 1,
+ "affected_data_classes": ["pii", "credentials"],
+ "business_scenario": "An unauthenticated visitor to the public /search endpoint could read the users table of the production shop: customer names, emails and password hashes.",
+ "rationale": "Hits the critical-tier shop-api asset (production, internet-exposed); the vulnerable query runs against the same database that stores customer PII and credentials, so impact on this organization is above the generic CVSS reading.",
+ "program_rating_ref": "business_context.program_severity.category_ratings.sql-injection = critical",
+ "assumptions": ["Production database contains real customer records (owner-stated in business_context)"]}

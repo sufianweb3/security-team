@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info: {title: vulnapp, version: "1.0"}
+servers:
+  - url: http://api.vulnapp.example.com
+components:
+  securitySchemes:
+    cookieAuth: {type: apiKey, in: cookie, name: session}
+    legacyKey: {type: apiKey, in: query, name: api_key}
+security:
+  - cookieAuth: []
+paths:
+  /invoices/{invoice_id}:
+    get:
+      parameters: [{name: invoice_id, in: path, required: true, schema: {type: integer}}]
+      responses: {"200": {description: invoice}}
+  /admin/users/{user_id}:
+    delete:
+      security: []
+      parameters: [{name: user_id, in: path, required: true, schema: {type: integer}}]
+      responses: {"204": {description: deleted}}
+  /search:
+    get:
+      security: []
+      parameters: [{name: q, in: query, schema: {type: string}}]
+      responses: {"200": {description: results}}

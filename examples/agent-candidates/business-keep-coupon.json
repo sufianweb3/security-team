@@ -1,0 +1,6 @@
+{"adjustment": 0,
+ "affected_data_classes": ["payment"],
+ "business_scenario": "A customer could re-apply a single-use coupon and pay less than intended on their own orders.",
+ "rationale": "Direct revenue leakage on the production shop, but limited to discounts on the attacker's own orders; no customer data exposed, so the technical rating stands.",
+ "program_rating_ref": "business_context.program_severity.category_ratings.business-logic = medium",
+ "assumptions": ["Coupons have real monetary value in production"]}

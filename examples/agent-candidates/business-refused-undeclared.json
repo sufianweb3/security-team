@@ -1,0 +1,5 @@
+{"adjustment": 1,
+ "affected_data_classes": ["funds", "health"],
+ "business_scenario": "Claims customer funds and medical records are exposed.",
+ "rationale": "Attempted raise citing data classes that the owner never declared for the shop-api asset; the CLI must refuse this inflation.",
+ "assumptions": []}

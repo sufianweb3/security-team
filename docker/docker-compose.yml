@@ -1,0 +1,27 @@
+# docker compose -f docker/docker-compose.yml run --rm auditor run config/scopes/vulnapp-local.yaml
+services:
+  auditor:
+    build: {context: .., dockerfile: docker/Dockerfile}
+    read_only: true                      # container root FS read-only
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 4g
+    cpus: 2
+    tmpfs: ["/tmp:size=512m"]
+    volumes:
+      - ../fixtures:/opt/sentinel/fixtures:ro      # inputs: read-only
+      - ../config:/opt/sentinel/config:ro          # policy + scopes: read-only
+      - ../targets:/opt/sentinel/targets           # immutable snapshots (written only by `ingest`)
+      - ../audit-output:/opt/sentinel/audit-output # the only other writable path
+    networks: [egress-limited]
+  # Fully offline profile: no network at all (use osv-scanner --offline-vulnerabilities).
+  auditor-offline:
+    extends: {service: auditor}
+    network_mode: none
+networks:
+  egress-limited:
+    driver: bridge
+    # Docker cannot filter by domain. For a domain allowlist (api.osv.dev + in-scope hosts)
+    # put an egress proxy (e.g. squid/tinyproxy with an allowlist) on this network, or use
+    # host firewall rules. See docs/THREAT_MODEL.md "network egress".

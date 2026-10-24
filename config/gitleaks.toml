@@ -1,0 +1,5 @@
+# Sentinel's gitleaks config: built-in default rules, passed explicitly with --config so a
+# target's own .gitleaks.toml / .gitleaksignore cannot disable rules or allowlist its secrets.
+title = "sentinel-auditor"
+[extend]
+useDefault = true

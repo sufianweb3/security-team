@@ -1,0 +1,13 @@
+{
+  "method": "cited_scale",
+  "category": "unauthorized_withdrawal",
+  "loss_type": "total_potential_exposure",
+  "currency": "USD",
+  "time_horizon": "single transaction",
+  "inputs": [{"name": "tvl", "value": 250000000, "source": "defillama page", "source_date": "2026-10-20"}],
+  "assumptions": ["entire TVL drainable"],
+  "calculation": "tvl * 1.0",
+  "range": {"min": 250000000, "most_plausible": 250000000, "max": 250000000},
+  "confidence": "medium",
+  "limitations": ["none"]
+}

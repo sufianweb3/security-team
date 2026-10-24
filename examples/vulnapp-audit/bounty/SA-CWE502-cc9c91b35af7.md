@@ -1,0 +1,39 @@
+# Unsafe YAML deserialization
+
+> Draft for MANUAL review and submission. Verify every statement yourself; this tool does not submit, does not predict eligibility or rewards, and did not test the live asset.
+
+**Weakness:** CWE-502  
+**Severity (tool assessment):** high
+
+**Verification status:** potential (medium confidence)
+
+**Business priority (tool assessment):** P2
+
+**Tool recommendation:** needs_more_evidence (you decide; the program decides eligibility)
+
+## Summary
+yaml.load with an unsafe Loader can construct arbitrary Python objects.
+
+## Affected component
+app — app/app.py:49
+
+## Evidence
+```
+    settings = yaml.load(request.data, Loader=yaml.Loader)
+```
+
+## Impact
+Depends on reachability and attacker control of the input.
+
+## Safe reproduction outline (no live exploitation)
+1. Obtain the referenced source at the pinned revision and open app/app.py:49.
+2. Trace the data/authorization flow described above through the cited lines.
+3. Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.
+4. If the program explicitly permits it, the program's own test accounts/environment are the only place a dynamic confirmation should ever be attempted — manually and within its rules.
+
+## Suggested remediation
+Use yaml.safe_load.
+
+## Limitations
+- Detected by pattern-based tool (semgrep); reachability and exploitability not established.
+- Detected by pattern-based tool (bandit); reachability and exploitability not established.

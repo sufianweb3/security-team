@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel-auditor.local/schemas/report.schema.json",
+  "title": "Sentinel Auditor report",
+  "type": "object",
+  "required": ["report_version", "generated_at", "assessment", "scope_summary", "disclaimer",
+               "summary", "components", "findings", "coverage", "limitations", "excluded_findings"],
+  "properties": {
+    "report_version": {"const": "1.0"},
+    "generated_at": {"type": "string"},
+    "tool_version": {"type": "string"},
+    "assessment": {"type": "object", "required": ["id", "name"]},
+    "scope_summary": {"type": "object", "required": ["authorized", "network_mode"]},
+    "disclaimer": {"type": "string", "minLength": 50},
+    "summary": {
+      "type": "object",
+      "required": ["overall_zone", "counts_by_zone", "counts_by_severity"],
+      "properties": {
+        "overall_zone": {"enum": ["RED", "YELLOW", "GREEN", "NOT_ASSESSED"]},
+        "counts_by_zone": {"type": "object"},
+        "counts_by_severity": {"type": "object"}
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {"type": "object", "required": ["name", "zone", "covered_by"],
+                "properties": {"zone": {"enum": ["RED", "YELLOW", "GREEN", "NOT_ASSESSED"]}}}
+    },
+    "findings": {"type": "array", "items": {"$ref": "finding.schema.json"}},
+    "excluded_findings": {"type": "array"},
+    "rejected_candidates": {"type": "array"},
+    "coverage": {"type": "object"},
+    "limitations": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "bug_bounty": {"type": ["object", "null"]}
+  }
+}

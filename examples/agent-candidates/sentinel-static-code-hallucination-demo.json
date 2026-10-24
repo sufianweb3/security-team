@@ -1,0 +1,88 @@
+{
+  "findings": [
+    {
+      "target_id": "vulnapp",
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "component": "app",
+      "description": "Hallucination demo: the cited code is invented and does not exist in the snapshot.",
+      "attack_scenario": "Demonstration only; no scenario.",
+      "expected_boundary": "Demonstration only.",
+      "observed_behavior": "Demonstration only.",
+      "technical_impact": "Demonstration only.",
+      "severity": "critical",
+      "confidence": "high",
+      "verification": {
+        "status": "confirmed_static"
+      },
+      "safe_validation": "Demonstration only; nothing to validate.",
+      "remediation": "Demonstration only; nothing to fix.",
+      "references": [],
+      "limitations": [],
+      "preconditions": [],
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-static-code"
+      },
+      "title": "Admin password hardcoded in auth module (invented excerpt)",
+      "locations": [
+        {
+          "file": "app/auth.py",
+          "start_line": 5,
+          "end_line": 5
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/auth.py",
+          "start_line": 5,
+          "end_line": 5,
+          "content": "ADMIN_PASSWORD = \"hunter2\""
+        }
+      ]
+    },
+    {
+      "target_id": "vulnapp",
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "component": "app",
+      "description": "Hallucination demo: the cited code is invented and does not exist in the snapshot.",
+      "attack_scenario": "Demonstration only; no scenario.",
+      "expected_boundary": "Demonstration only.",
+      "observed_behavior": "Demonstration only.",
+      "technical_impact": "Demonstration only.",
+      "severity": "critical",
+      "confidence": "high",
+      "verification": {
+        "status": "confirmed_static"
+      },
+      "safe_validation": "Demonstration only; nothing to validate.",
+      "remediation": "Demonstration only; nothing to fix.",
+      "references": [],
+      "limitations": [],
+      "preconditions": [],
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-static-code"
+      },
+      "title": "Secret in settings module (invented file)",
+      "locations": [
+        {
+          "file": "app/settings_prod.py",
+          "start_line": 3,
+          "end_line": 3
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/settings_prod.py",
+          "start_line": 3,
+          "end_line": 3,
+          "content": "SECRET = \"x\""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "method": "scenario",
+  "category": "fraudulent_credit",
+  "loss_type": "direct_loss",
+  "currency": "USD",
+  "time_horizon": "one abuse campaign before detection (assumed 7 days)",
+  "inputs": [
+    {"name": "orders_per_week", "value": 2000, "source": "ASSUMPTION: training fixture has no business data; replace with the platform's published or provided figure", "source_date": "2026-10-24"},
+    {"name": "average_order_value_usd", "value": 60, "source": "ASSUMPTION: illustrative only", "source_date": "2026-10-24"},
+    {"name": "exposure_fraction", "value": {"min": 0.0, "likely": 0.005, "max": 0.03}, "source": "ASSUMPTION: share of orders where the flaw is abused (requires a valid coupon)", "source_date": "2026-10-24"},
+    {"name": "discount_obtained_fraction", "value": {"min": 0.2, "likely": 0.8, "max": 1.0}, "source": "Code analysis: repeated calls compound the percentage toward 100% (app/app.py:86)", "source_date": "2026-10-24"}
+  ],
+  "assumptions": [
+    "Business volume figures are placeholders because the fixture has no real data.",
+    "Abuse continues for one week before detection.",
+    "No external fraud controls cap discounts (none visible in the snapshot)."
+  ],
+  "calculation": "orders_per_week * aov * exposure_fraction * discount_obtained_fraction; min=2000*60*0*0.2, likely=2000*60*0.005*0.8, max=2000*60*0.03*1.0",
+  "range": {"min": 0, "most_plausible": 480, "max": 3600},
+  "confidence": "low",
+  "limitations": ["Illustrative scenario on a training fixture; not a statement about any real platform.",
+                  "Not an actual loss and not a bounty estimate."]
+}

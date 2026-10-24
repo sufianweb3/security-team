@@ -1,0 +1,26 @@
+# Ground truth for the vulnapp fixture. `deterministic: true` items must be found by
+# `python -m auditor run` with the default toolset; others are for agent evaluation.
+issues:
+  - {id: sqli-search,       file: app/app.py,    category: sql-injection,      cwe: CWE-89,  deterministic: true}
+  - {id: path-traversal,    file: app/app.py,    category: path-traversal,     cwe: CWE-22,  deterministic: true}
+  - {id: unsafe-yaml,       file: app/app.py,    category: deserialization,    cwe: CWE-502, deterministic: true}
+  - {id: pickle-cookie,     file: app/app.py,    category: deserialization,    cwe: CWE-502, deterministic: true}
+  - {id: hardcoded-flask-key, file: app/app.py,  category: hardcoded-secret,   cwe: CWE-798, deterministic: true}
+  - {id: aws-key,           file: app/config.py, category: hardcoded-secret,   cwe: CWE-798, deterministic: true}
+  - {id: tls-verify-off,    file: app/config.py, category: tls-verification-disabled, cwe: CWE-295, deterministic: true}
+  - {id: cmd-injection-js,  file: web/index.js,  category: command-injection,  cwe: CWE-78,  deterministic: true}
+  - {id: eval-js,           file: web/index.js,  category: code-injection,     cwe: CWE-95,  deterministic: true}
+  - {id: npm-postinstall,   file: package.json,  category: risky-lifecycle-script, cwe: CWE-829, deterministic: true}
+  - {id: gha-prt,           file: .github/workflows/ci.yml, category: ci-privileged-untrusted-checkout, cwe: CWE-829, deterministic: true}
+  - {id: gha-injection,     file: .github/workflows/ci.yml, category: ci-script-injection, cwe: CWE-78, deterministic: true}
+  - {id: docker-curl-sh,    file: Dockerfile,    category: unverified-download, cwe: CWE-494, deterministic: true}
+  - {id: oas-http,          file: openapi.yaml,  category: cleartext-transport, cwe: CWE-319, deterministic: true}
+  - {id: vuln-deps,         file: requirements.txt, category: vulnerable-dependency, cwe: CWE-1395, deterministic: true, needs_network: true}
+  # Require reasoning (agents): these are the ones pattern tools miss.
+  - {id: idor-invoice,      file: app/app.py,    category: idor,               cwe: CWE-639, deterministic: false}
+  - {id: missing-admin-role, file: app/app.py,   category: missing-authorization, cwe: CWE-862, deterministic: false}
+  - {id: coupon-compounding, file: app/app.py,   category: business-logic,     cwe: CWE-840, deterministic: false}
+  - {id: reentrancy,        file: contracts/Vault.sol, category: reentrancy,   cwe: CWE-841, deterministic: false}
+false_positives:
+  - {file: docs/SETUP.md,      reason: documented AWS placeholder key}
+  - {file: tests/test_login.py, reason: test-only dummy password}

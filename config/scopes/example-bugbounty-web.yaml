@@ -1,0 +1,64 @@
+# Example: bug bounty program, passive web + public source. EDIT BEFORE USE.
+# Only hosts listed under allowed_hosts are contacted, with GET/HEAD, rate-limited.
+scope_version: 1
+assessment:
+  id: acme-bbp-2026q4
+  name: ACME bug bounty — passive review
+  type: [website, source_code, dependency_analysis]
+  config_version: 1
+authorization:
+  status: unconfirmed          # change to "authorized" only after reading the program policy
+  basis: bug_bounty_program
+  program:
+    name: ACME VDP
+    platform: hackerone
+    policy_url: https://hackerone.com/acme   # placeholder - use the real policy URL
+    policy_file: ../program/acme-policy.md
+    prohibited_tests: [denial-of-service, social-engineering, automated-scanning]
+  expires_at: "2026-12-31T23:59:59Z"
+targets:
+  repositories:
+    - {id: acme-web, url: "https://github.com/acme/web", commit: "0000000000000000000000000000000000000000"}
+  web:
+    allowed_hosts: [www.acme.example, api.acme.example]
+    allowed_path_prefixes: ["/"]
+    seed_urls: ["https://www.acme.example/", "https://api.acme.example/.well-known/security.txt"]
+    allow_plain_http: false
+    passive_checks: [security_headers, cookies, tls_metadata, security_txt]
+exclusions:
+  hosts: [status.acme.example]
+  paths: [/logout, /admin]
+  vuln_categories: [missing-security-header, information-disclosure, cookie-attributes]
+limits:
+  max_http_requests: 25
+  request_timeout_seconds: 15
+  min_interval_seconds: 3
+# Business context for BUSINESS PRIORITY. Copy the program's asset tiers and severity table
+# verbatim from its policy page; leave source: unknown if you cannot (then priority can only go down).
+business_context:
+  source: program_policy
+  source_ref: https://hackerone.com/acme   # placeholder - use the program's real policy URL
+  program_severity:
+    scale: hackerone
+    category_ratings: {}                  # e.g. {idor: high, sql-injection: critical}
+    out_of_scope_impacts: [missing-security-header, information-disclosure, cookie-attributes]
+  assets:
+    - id: acme-api
+      match: {hosts: [api.acme.example]}
+      criticality: critical               # program "Tier 1"
+      data_classes: [pii, payment, authentication]
+      environment: production
+      internet_exposed: true
+    - id: acme-www
+      match: {hosts: [www.acme.example]}
+      criticality: medium                 # program "Tier 3"
+      max_severity: high                  # program caps Tier 3 rewards at high
+      data_classes: [public]
+      environment: production
+      internet_exposed: true
+    - id: acme-web-source
+      match: {target_ids: [acme-web]}
+      criticality: high
+      data_classes: [pii, authentication]
+      environment: production
+      internet_exposed: true

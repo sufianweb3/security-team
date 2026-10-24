@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel-auditor.local/schemas/finding.schema.json",
+  "title": "Sentinel Auditor finding",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "category",
+    "component",
+    "locations",
+    "evidence",
+    "description",
+    "preconditions",
+    "attack_scenario",
+    "expected_boundary",
+    "observed_behavior",
+    "technical_impact",
+    "severity",
+    "confidence",
+    "verification",
+    "safe_validation",
+    "remediation",
+    "references",
+    "limitations",
+    "source"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^SA-[A-Z0-9]{2,12}-[0-9a-f]{8,12}$"
+    },
+    "fingerprint": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 160
+    },
+    "category": {
+      "type": "string",
+      "minLength": 3
+    },
+    "cwe": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^CWE-[0-9]{1,5}$"
+    },
+    "component": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "locations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "start_line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "end_line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "function": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "source",
+              "propagation",
+              "sink",
+              "check",
+              "config",
+              "observation",
+              "location"
+            ]
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "kind",
+          "content"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "code_excerpt",
+              "tool_output",
+              "http_observation",
+              "config_excerpt",
+              "spec_excerpt",
+              "doc_excerpt"
+            ]
+          },
+          "file": {
+            "type": "string"
+          },
+          "start_line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "end_line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "url": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "verification_note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "attack_scenario": {
+      "type": "string",
+      "minLength": 10
+    },
+    "expected_boundary": {
+      "type": "string",
+      "minLength": 5
+    },
+    "observed_behavior": {
+      "type": "string",
+      "minLength": 5
+    },
+    "technical_impact": {
+      "type": "string",
+      "minLength": 5
+    },
+    "severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "informational"
+      ]
+    },
+    "severity_basis": {
+      "enum": [
+        "cvss",
+        "qualitative",
+        "tool_default",
+        "policy_cap"
+      ]
+    },
+    "cvss": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "enum": [
+            "3.1",
+            "4.0"
+          ]
+        },
+        "vector": {
+          "type": "string"
+        },
+        "score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "claimed_confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "confirmed_static",
+            "strongly_supported",
+            "potential",
+            "unverified_hypothesis",
+            "false_positive",
+            "not_applicable"
+          ]
+        },
+        "basis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "reviewed_by": {
+          "type": "string"
+        },
+        "missing_prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alternative_explanations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "risk_zone": {
+      "enum": [
+        "RED",
+        "YELLOW",
+        "GREEN"
+      ]
+    },
+    "safe_validation": {
+      "type": "string",
+      "minLength": 10
+    },
+    "remediation": {
+      "type": "string",
+      "minLength": 10
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "financial_exposure": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "bounty": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind",
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "tool",
+            "agent",
+            "merged"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "business_impact": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "business_review": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "business_reviewer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{"adjustment": 1,
+ "affected_data_classes": ["pii", "payment"],
+ "business_scenario": "Any logged-in customer could read other customers' invoices: names, billing addresses and amounts paid.",
+ "rationale": "Invoices on the critical-tier billing API carry customer PII and payment data; for a shop, cross-customer invoice disclosure is a reportable privacy incident, so one step above the read-only CVSS medium is justified.",
+ "program_rating_ref": "business_context.program_severity.category_ratings.idor = high",
+ "assumptions": ["Invoice records belong to real customers in production (owner-stated)"]}

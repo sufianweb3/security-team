@@ -1,0 +1,47 @@
+$ python -m auditor scope validate config/scopes/vulnapp-local.yaml  -> rc=0
+$ python -m auditor ingest config/scopes/vulnapp-local.yaml  -> rc=0
+$ python -m auditor tools run vulnapp-local/vulnapp-local-20261023T191940Z-b894  -> rc=0
+$ python -m auditor findings add vulnapp-local/vulnapp-local-20261023T191940Z-b894 --agent sentinel-authz --file <repo>/...  -> rc=0
+$ python -m auditor findings add vulnapp-local/vulnapp-local-20261023T191940Z-b894 --agent sentinel-business-logic --file <repo>/...  -> rc=0
+$ python -m auditor findings add vulnapp-local/vulnapp-local-20261023T191940Z-b894 --agent sentinel-static-code --file <repo>/...  -> rc=0
+$ python -m auditor findings list vulnapp-local/vulnapp-local-20261023T191940Z-b894  -> rc=0
+
+# guardrail demonstrations (expected to be refused):
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE639-f1987c925021 --status confirmed_static --reviewer sentinel-verifier --basis consensus --rationale authz and static-code agents both agree this is real  -> rc=3
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE639-f1987c925021 --status confirmed_static --reviewer sentinel-authz --rationale I re-checked my own finding and it is real  -> rc=3
+
+# independent verification (sentinel-verifier):
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE639-f1987c925021 --reviewer sentinel-verifier --status confirmed_static --rationale get_invoice is reachable by any session (login_required o...  -> rc=0
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE862-32e2b204d175 --reviewer sentinel-verifier --status confirmed_static --rationale delete_user carries only @login_required while promote_us...  -> rc=0
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE840-049386d40d16 --reviewer sentinel-verifier --status strongly_supported --missing Database schema/triggers for coupons are not in the snaps... --rationale single_use is selected but never read; the total is re-di...  -> rc=0
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE89-f0ffbdfe1dda --reviewer sentinel-verifier --status confirmed_static --basis dataflow --rationale Source request.args.get('q') (unauthenticated /search) fl...  -> rc=0
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE798-752d6622c612 --reviewer sentinel-verifier --status false_positive --rationale Cited excerpt does not exist in app/auth.py; evidence fai...  -> rc=0
+$ python -m auditor findings set-status vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE259-177d4ec98692 --reviewer sentinel-verifier --status false_positive --rationale tests/test_login.py value is an explicit test-only dummy ...  -> rc=0
+
+# severity (sentinel-severity):
+$ python -m auditor findings set-cvss vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE639-f1987c925021 --vector CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N --rationale Any account reads other users' invoices; no write impact.  -> rc=0
+$ python -m auditor findings set-cvss vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE862-32e2b204d175 --vector CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H --rationale Any account deletes arbitrary users.  -> rc=0
+$ python -m auditor findings set-cvss vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE89-f0ffbdfe1dda --vector CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N --rationale Unauthenticated read via SQLi; sqlite3 blocks stacked sta...  -> rc=0
+$ python -m auditor findings set-cvss vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE840-049386d40d16 --vector CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:N --rationale Any account manipulates cart totals.  -> rc=0
+$ python -m auditor financial set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE840-049386d40d16 --file <repo>/...  -> rc=0
+$ python -m auditor financial set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE862-32e2b204d175 --file <repo>/...  -> rc=2
+
+# business impact (sentinel-business-impact):
+$ python -m auditor business context vulnapp-local/vulnapp-local-20261023T191940Z-b894  -> rc=0
+$ python -m auditor business set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE89-f0ffbdfe1dda --reviewer sentinel-business-impact --file <repo>/...  -> rc=0
+$ python -m auditor business set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE639-f1987c925021 --reviewer sentinel-business-impact --file <repo>/...  -> rc=0
+$ python -m auditor business set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE840-049386d40d16 --reviewer sentinel-business-impact --file <repo>/...  -> rc=0
+# business guardrails (expected to be refused):
+$ python -m auditor business set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE862-32e2b204d175 --reviewer sentinel-business-impact --file <repo>/...  -> rc=3
+$ python -m auditor business set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE639-f1987c925021 --reviewer sentinel-authz --file <repo>/...  -> rc=3
+$ python -m auditor findings list vulnapp-local/vulnapp-local-20261023T191940Z-b894  -> rc=0
+$ python -m auditor business set vulnapp-local/vulnapp-local-20261023T191940Z-b894 SA-CWE798-a60a0caf6f12 --reviewer sentinel-business-impact --file <repo>/...  -> rc=3
+
+# report (sentinel-report):
+$ python -m auditor report vulnapp-local/vulnapp-local-20261023T191940Z-b894  -> rc=0
+$ python -m auditor log verify vulnapp-local/vulnapp-local-20261023T191940Z-b894  -> rc=0
+{
+  "json": "<repo>/audit-output/vulnapp-local/vulnapp-local-20261023T191940Z-b894/report.json",
+  "md": "<repo>/audit-output/vulnapp-local/vulnapp-local-20261023T191940Z-b894/report.md",
+  "html": "<repo>/audit-output/vulnapp-local/vulnapp-local-20261023T191940Z-b894/report.html"
+}

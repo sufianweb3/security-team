@@ -1,0 +1,49 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "./.opencode/plugins/sentinel-guard.js"
+  ],
+  "permission": {
+    "*": "deny",
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny"
+    },
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "lsp": "allow",
+    "todowrite": "allow",
+    "todoread": "allow",
+    "question": "allow",
+    "skill": {
+      "*": "deny",
+      "sentinel-*": "allow"
+    },
+    "task": {
+      "*": "deny",
+      "sentinel-*": "allow"
+    },
+    "external_directory": "deny",
+    "doom_loop": "ask",
+    "edit": {
+      "*": "deny",
+      "audit-output/**": "allow"
+    },
+    "webfetch": "deny",
+    "websearch": "deny",
+    "shell": {
+      "*": "deny",
+      "python -m auditor*": "allow",
+      "python3 -m auditor*": "allow",
+      "py -m auditor*": "allow"
+    },
+    "bash": {
+      "*": "deny",
+      "python -m auditor*": "allow",
+      "python3 -m auditor*": "allow",
+      "py -m auditor*": "allow"
+    }
+  }
+}

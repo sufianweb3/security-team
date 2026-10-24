@@ -1,0 +1,106 @@
+{
+  "target_id": "vulnapp",
+  "files_total": 18,
+  "languages": {
+    "python": 4,
+    "solidity": 1,
+    "javascript": 1
+  },
+  "frameworks": [
+    "flask"
+  ],
+  "manifests": [
+    "package-lock.json",
+    "package.json",
+    "requirements.txt"
+  ],
+  "lockfiles": [
+    "package-lock.json"
+  ],
+  "missing_lockfiles": [],
+  "api_specs": [
+    "openapi.yaml"
+  ],
+  "iac": [
+    "Dockerfile"
+  ],
+  "ci_workflows": [
+    ".github/workflows/ci.yml"
+  ],
+  "docs": [
+    "README.md",
+    "docs/SETUP.md"
+  ],
+  "smart_contracts": [
+    "contracts/Vault.sol"
+  ],
+  "entry_points": [
+    {
+      "file": "app/app.py",
+      "line": 22,
+      "route": "/invoices/<int:invoice_id>"
+    },
+    {
+      "file": "app/app.py",
+      "line": 32,
+      "route": "/search"
+    },
+    {
+      "file": "app/app.py",
+      "line": 39,
+      "route": "/download"
+    },
+    {
+      "file": "app/app.py",
+      "line": 46,
+      "route": "/import"
+    },
+    {
+      "file": "app/app.py",
+      "line": 53,
+      "route": "/prefs"
+    },
+    {
+      "file": "app/app.py",
+      "line": 59,
+      "route": "/admin/users/<int:user_id>"
+    },
+    {
+      "file": "app/app.py",
+      "line": 68,
+      "route": "/admin/users/<int:user_id>/promote"
+    },
+    {
+      "file": "app/app.py",
+      "line": 77,
+      "route": "/cart/apply-coupon"
+    },
+    {
+      "file": "web/index.js",
+      "line": 6,
+      "route": "/ping"
+    },
+    {
+      "file": "web/index.js",
+      "line": 10,
+      "route": "/calc"
+    }
+  ],
+  "secret_like_files": [],
+  "not_inspected": {
+    "binary_files": [],
+    "binary_count": 0
+  },
+  "recommended_agents": [
+    "sentinel-recon",
+    "sentinel-secrets",
+    "sentinel-static-code",
+    "sentinel-authz",
+    "sentinel-deps",
+    "sentinel-web-api",
+    "sentinel-business-logic",
+    "sentinel-verifier",
+    "sentinel-severity",
+    "sentinel-report"
+  ]
+}

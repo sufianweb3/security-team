@@ -1,0 +1,81 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m auditor scope:*)",
+      "Bash(python -m auditor ingest:*)",
+      "Bash(python -m auditor run:*)",
+      "Bash(python -m auditor inventory:*)",
+      "Bash(python -m auditor tools:*)",
+      "Bash(python -m auditor fetch:*)",
+      "Bash(python -m auditor openapi:*)",
+      "Bash(python -m auditor supplychain:*)",
+      "Bash(python -m auditor findings:*)",
+      "Bash(python -m auditor score:*)",
+      "Bash(python -m auditor financial:*)",
+      "Bash(python -m auditor business:*)",
+      "Bash(python -m auditor report:*)",
+      "Bash(python -m auditor bounty:*)",
+      "Bash(python -m auditor status:*)",
+      "Bash(python -m auditor log:*)",
+      "Bash(python3 -m auditor scope:*)",
+      "Bash(python3 -m auditor ingest:*)",
+      "Bash(python3 -m auditor run:*)",
+      "Bash(python3 -m auditor inventory:*)",
+      "Bash(python3 -m auditor tools:*)",
+      "Bash(python3 -m auditor fetch:*)",
+      "Bash(python3 -m auditor openapi:*)",
+      "Bash(python3 -m auditor supplychain:*)",
+      "Bash(python3 -m auditor findings:*)",
+      "Bash(python3 -m auditor score:*)",
+      "Bash(python3 -m auditor financial:*)",
+      "Bash(python3 -m auditor business:*)",
+      "Bash(python3 -m auditor report:*)",
+      "Bash(python3 -m auditor bounty:*)",
+      "Bash(python3 -m auditor status:*)",
+      "Bash(python3 -m auditor log:*)",
+      "Edit(audit-output/**)",
+      "Write(audit-output/**)"
+    ],
+    "deny": [
+      "WebFetch",
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(pip:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(node:*)",
+      "Bash(sh:*)",
+      "Bash(bash:*)",
+      "Edit(targets/**)",
+      "Write(targets/**)",
+      "Edit(config/**)",
+      "Write(config/**)",
+      "Edit(hooks/**)",
+      "Write(hooks/**)",
+      "Edit(auditor/**)",
+      "Write(auditor/**)",
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.claude/.credentials.json)"
+    ],
+    "ask": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit|WebFetch|WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/hooks/policy_guard.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

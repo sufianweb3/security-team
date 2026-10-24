@@ -1,0 +1,154 @@
+# Sentinel Auditor - CENTRAL SECURITY POLICY
+# ------------------------------------------------------------------
+# This file is the single source of truth for what the auditor may do.
+# It is read by: the auditor CLI (auditor/policy.py), the harness hook
+# (hooks/policy_guard.py, used by OpenCode, Claude Code and Codex), and the
+# harness config generator (auditor/harness_gen.py).
+#
+# Changing this file is a privileged action. Agents are denied write access
+# to it by every harness config and by the policy hook. There is no flag in
+# this file (or anywhere else) that enables exploitation, payload delivery,
+# fuzzing, brute force or state-changing requests: those code paths do not exist.
+version: 1
+mode: read_only          # the only supported mode
+fail_closed: true        # unknown tool / unclear scope / unparsable input => deny
+
+paths:
+  targets_dir: targets           # immutable snapshots of authorized inputs
+  output_dir: audit-output       # the ONLY writable location for agents and the CLI
+  protected:                     # never writable by agents (hook-enforced)
+    - targets/**
+    - config/**
+    - hooks/**
+    - auditor/**
+    - schemas/**
+    - harness/**
+    - .opencode/**
+    - .claude/**
+    - .codex/**
+    - .agents/**
+    - opencode.json
+    - AGENTS.md
+    - CLAUDE.md
+  sensitive_read_deny:           # host credentials the agents must never read
+    - "~/.ssh/**"
+    - "~/.aws/**"
+    - "~/.config/gcloud/**"
+    - "~/.azure/**"
+    - "~/.docker/config.json"
+    - "~/.kube/**"
+    - "~/.netrc"
+    - "~/.git-credentials"
+    - "~/.local/share/opencode/auth.json"
+    - "~/.codex/auth.json"
+    - "~/.claude/.credentials.json"
+    - "**/.env"                  # outside targets/; target .env files are read via the secrets adapter (redacted)
+
+network:
+  default: deny
+  allowed_methods: [GET, HEAD]   # nothing else is implemented in auditor/netguard.py
+  allowed_schemes: [https]       # http only if scope.web.allow_plain_http is true
+  # Hosts any run may contact regardless of target scope (vulnerability data only).
+  always_allowed_hosts:
+    - api.osv.dev
+  block_private_ranges: true
+  blocked_hostnames:
+    - localhost
+    - metadata.google.internal
+    - metadata
+    - instance-data
+  max_redirects: 3
+  max_response_bytes: 2000000
+  connect_timeout_seconds: 10
+  read_timeout_seconds: 15
+  min_interval_seconds_per_host: 2.0
+  user_agent: "sentinel-auditor/0.3 (passive read-only security review; authorized scope)"
+  strip_request_headers: [authorization, cookie, proxy-authorization]
+
+commands:
+  # Agents' shell access (where granted at all) is limited to this CLI.
+  allowed_prefixes:
+    - "python -m auditor "
+    - "python3 -m auditor "
+    - "py -m auditor "
+  # Shell metacharacters that could chain or redirect commands.
+  forbidden_substrings: [";", "&&", "||", "|", "`", "$(", ">", "<", "\n", "\r", "&"]
+  # Sub-commands of the CLI an agent may call. Per-agent narrowing happens in
+  # harness/agents.yaml and the generated harness configs.
+  allowed_subcommands:
+    - scope
+    - ingest        # orchestrator only (writes immutable snapshots under targets/)
+    - run           # orchestrator only (deterministic, LLM-free pipeline)
+    - inventory
+    - tools
+    - fetch
+    - openapi
+    - supplychain
+    - findings
+    - score
+    - financial
+    - business      # business-impact review (sentinel-business-impact)
+    - report
+    - bounty
+    - status
+    - log
+
+tools:
+  # Only these external binaries may ever be executed, only by auditor/sandbox.py,
+  # only with argument lists built by the adapters (never by an agent), shell=False.
+  allowlist:
+    semgrep:
+      purpose: SAST (local rules only, metrics off)
+      network: none
+    bandit:
+      purpose: Python SAST
+      network: none
+    gitleaks:
+      purpose: secret detection (redacted output)
+      network: none
+    osv-scanner:
+      purpose: dependency vulnerability lookup against OSV
+      network: [api.osv.dev]      # or none with --offline-vulnerabilities
+    git:
+      purpose: repository snapshot ingestion only (hardened flags, hooks disabled)
+      network: [scope.repositories hosts]
+  default_timeout_seconds: 600
+  max_output_bytes: 50000000
+  env_passthrough: [PATH, HOME, USERPROFILE, SYSTEMROOT, TEMP, TMP, LANG, LC_ALL, SEMGREP_RULES_DIR]
+
+ingest:
+  max_files: 200000
+  max_total_bytes: 2000000000
+  max_file_bytes: 25000000
+  follow_symlinks: false
+  make_read_only: true
+  skip_dirs: [.git, node_modules, .venv, venv, __pycache__, .tox, dist, build, target, vendor/bundle]
+
+findings:
+  require_evidence: true
+  verify_excerpts_against_snapshot: true
+  # A finding can never become confirmed because several models agree.
+  forbidden_verification_bases: [consensus, multiple_agents_agree, llm_agreement]
+  header_only_max_severity: low
+  critical_requires_cvss_vector: true
+
+budgets:
+  max_http_requests_per_run: 200
+  max_tool_runs_per_run: 50
+  max_candidate_findings_per_agent: 60
+  # Model-side budgets (steps / turns) are rendered into each harness config
+  # from harness/agents.yaml. See docs/MODEL_STRATEGY.md.
+
+prohibited_capabilities:   # documentation for humans + tests/test_no_exploit_paths.py
+  - exploitation or proof-of-concept execution against any target
+  - payload generation or delivery (SQLi, XSS, SSRF, RCE, deserialization gadgets)
+  - brute force, credential stuffing, password spraying, token guessing
+  - use or remote validation of discovered credentials
+  - any HTTP method other than GET/HEAD; any request body
+  - fuzzing, crawling, directory brute force, port scanning, DoS or load testing
+  - bypassing WAFs, rate limits, authentication or access controls
+  - account creation, phishing, messaging, social engineering
+  - modifying, uploading to, or deleting target resources
+  - state-changing blockchain interaction (transactions, signing)
+  - automatic remediation, commits, pull requests, issue filing, bounty submission
+  - executing repository scripts, build steps, tests, or package lifecycle hooks

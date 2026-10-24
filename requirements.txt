@@ -1,0 +1,3 @@
+# Runtime dependencies of the auditor core (pinned; verified 2026-10-24 on PyPI).
+PyYAML==6.0.3
+jsonschema==4.26.0

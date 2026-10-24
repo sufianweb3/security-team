@@ -1,0 +1,100 @@
+# Sentinel core rules (MIT). Small, high-signal, local-only rule pack used by default.
+# For broader coverage install the pinned semgrep-rules checkout (scripts/fetch_semgrep_rules.py).
+rules:
+  - id: sentinel.python.sqli-fstring-execute
+    languages: [python]
+    severity: ERROR
+    message: SQL query built with string formatting and passed to execute(); use parameterized queries.
+    metadata: {cwe: "CWE-89", sentinel_category: sql-injection, sentinel_severity: high, title: "SQL query built from string formatting",
+               fix: "Use parameter placeholders (cursor.execute(sql, params)).", references: ["https://cwe.mitre.org/data/definitions/89.html"]}
+    pattern-either:
+      - pattern: $DB.execute(f"...", ...)
+      - pattern: $DB.execute("..." % ..., ...)
+      - pattern: $DB.execute("...".format(...), ...)
+      - pattern: $DB.execute("..." + $X, ...)
+  - id: sentinel.python.flask-path-traversal
+    languages: [python]
+    severity: ERROR
+    message: File path derived from request data reaches a file API without normalization/containment checks.
+    metadata: {cwe: "CWE-22", sentinel_category: path-traversal, sentinel_severity: high, title: "Request-controlled file path",
+               fix: "Use werkzeug.utils.safe_join / send_from_directory and validate against an allowlist.",
+               references: ["https://cwe.mitre.org/data/definitions/22.html"]}
+    patterns:
+      - pattern-either:
+          - pattern: send_file(os.path.join($BASE, $X), ...)
+          - pattern: open(os.path.join($BASE, $X), ...)
+      - pattern-inside: |
+          $X = request.$SRC.get(...)
+          ...
+  - id: sentinel.python.unsafe-yaml-load
+    languages: [python]
+    severity: ERROR
+    message: yaml.load with an unsafe Loader can construct arbitrary Python objects.
+    metadata: {cwe: "CWE-502", sentinel_category: deserialization, sentinel_severity: high, title: "Unsafe YAML deserialization",
+               fix: "Use yaml.safe_load.", references: ["https://cwe.mitre.org/data/definitions/502.html"]}
+    pattern-either:
+      - pattern: yaml.load($X, Loader=yaml.Loader)
+      - pattern: yaml.load($X, Loader=yaml.UnsafeLoader)
+      - pattern: yaml.unsafe_load(...)
+  - id: sentinel.python.pickle-untrusted
+    languages: [python]
+    severity: ERROR
+    message: pickle.loads on request-derived data allows arbitrary code execution during deserialization.
+    metadata: {cwe: "CWE-502", sentinel_category: deserialization, sentinel_severity: high, title: "Pickle deserialization of request data",
+               fix: "Use JSON with a schema; never unpickle client data.", references: ["https://docs.python.org/3/library/pickle.html"]}
+    patterns:
+      - pattern: pickle.loads(...)
+      - pattern-inside: |
+          $R = request.$SRC.get(...)
+          ...
+  - id: sentinel.python.flask-hardcoded-secret-key
+    languages: [python]
+    severity: WARNING
+    message: Flask secret_key is hardcoded; session cookies can be forged by anyone who knows it.
+    metadata: {cwe: "CWE-798", sentinel_category: hardcoded-secret, sentinel_severity: medium, title: "Hardcoded Flask secret key",
+               fix: "Load the secret from the environment or a secret manager.", references: ["https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY"]}
+    pattern: $APP.secret_key = "..."
+  - id: sentinel.python.requests-verify-false
+    languages: [python]
+    severity: WARNING
+    message: TLS certificate verification disabled.
+    metadata: {cwe: "CWE-295", sentinel_category: tls-verification-disabled, sentinel_severity: medium, title: "TLS verification disabled",
+               fix: "Remove verify=False; pin a CA bundle if needed."}
+    pattern: requests.$M(..., verify=False, ...)
+  - id: sentinel.python.flask-debug
+    languages: [python]
+    severity: WARNING
+    message: Flask debug mode exposes the Werkzeug debugger (code execution) if reachable.
+    metadata: {cwe: "CWE-489", sentinel_category: debug-enabled, sentinel_severity: medium, title: "Flask debug mode enabled"}
+    pattern: $APP.run(..., debug=True, ...)
+  - id: sentinel.js.child-process-exec-template
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Shell command built from request data and executed with child_process.exec.
+    metadata: {cwe: "CWE-78", sentinel_category: command-injection, sentinel_severity: high, title: "Command built from request data",
+               fix: "Use execFile/spawn with an argument array and strict validation."}
+    pattern-either:
+      - pattern: exec(`...${$REQ.query.$P}...`, ...)
+      - pattern: exec(`...${$REQ.body.$P}...`, ...)
+      - pattern: exec("..." + $REQ.query.$P, ...)
+  - id: sentinel.js.eval-request
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: eval() of request data enables arbitrary code execution.
+    metadata: {cwe: "CWE-95", sentinel_category: code-injection, sentinel_severity: high, title: "eval of request data",
+               fix: "Never eval user input; use a safe expression parser."}
+    pattern-either:
+      - pattern: eval($REQ.query.$P)
+      - pattern: eval($REQ.body.$P)
+  - id: sentinel.solidity.call-before-state-update
+    languages: [solidity]
+    severity: WARNING
+    message: External call with value precedes a state write in the same function (possible reentrancy); verify with a reentrancy guard / CEI review.
+    metadata: {cwe: "CWE-841", sentinel_category: reentrancy, sentinel_severity: high, title: "External call before state update"}
+    patterns:
+      - pattern-inside: |
+          function $F(...) { ... }
+      - pattern: |
+          $A.call{value: $V}($D);
+          ...
+          $M[$K] -= $V;

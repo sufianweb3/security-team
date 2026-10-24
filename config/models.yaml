@@ -1,0 +1,45 @@
+# Provider-independent model configuration.
+# Agents reference a TIER (cheap | strong). Each harness profile maps tiers to that
+# harness's model identifiers. Re-render harness files after editing:
+#     python scripts/setup.py --harness all --profile <profile>
+#
+# Identifiers below were checked against provider docs on 2026-10-24:
+#   DeepSeek API: `deepseek-flash` (served by DeepSeek-V4.1-Flash) and `deepseek-v4-pro`
+#     https://api-docs.deepseek.com/  (1M context per DeepSeek's Codex model catalog)
+#   OpenCode model ids use `provider/model`; confirm locally with `opencode models deepseek`.
+#   Claude Code accepts aliases (haiku/sonnet/opus/inherit). When Claude Code is pointed at
+#     DeepSeek's Anthropic-compatible endpoint, DeepSeek maps claude-opus* -> deepseek-v4-pro
+#     and claude-haiku*/claude-sonnet* -> deepseek-flash (per DeepSeek docs).
+#   Codex custom agents accept `model` + `model_reasoning_effort`; DeepSeek requires the
+#     user-level provider setup in docs/MODEL_STRATEGY.md (project config cannot set providers).
+# Free tiers and rate limits change often: verify on the provider's pricing page before relying on them.
+default_profile: deepseek
+
+tiers:
+  cheap:
+    use_for: [inventory, file classification, first-pass discovery, routine config review, report assembly]
+  strong:
+    use_for: [cross-file data flow, authorization, business logic, verification, conflict resolution, final QC]
+
+profiles:
+  deepseek:
+    opencode: {cheap: deepseek/deepseek-flash, strong: deepseek/deepseek-v4-pro}
+    claude:   {cheap: haiku, strong: opus}          # opus->v4-pro, haiku->flash via DeepSeek endpoint
+    codex:    {cheap: deepseek-flash, strong: deepseek-v4-pro, cheap_effort: high, strong_effort: high}
+  anthropic:
+    opencode: {cheap: null, strong: null}           # fill from `opencode models anthropic` (ids not verified here)
+    claude:   {cheap: haiku, strong: sonnet}
+    codex:    {cheap: null, strong: null}           # Codex cannot use Anthropic models natively
+  openai:
+    opencode: {cheap: openai/gpt-6-luna, strong: openai/gpt-6.1-sol}
+    claude:   {cheap: inherit, strong: inherit}
+    codex:    {cheap: gpt-6-luna, strong: gpt-6.1-sol, cheap_effort: high, strong_effort: high}
+  inherit:   # every agent uses whatever model the session uses (safest when unsure)
+    opencode: {cheap: null, strong: null}
+    claude:   {cheap: inherit, strong: inherit}
+    codex:    {cheap: null, strong: null}
+
+fallback:
+  # If a strong model is unavailable, re-render with `--profile inherit` or map strong->cheap.
+  # The deterministic pipeline (`python -m auditor run`) needs no model at all.
+  strong_unavailable: use_cheap_but_cap_verification   # verifier may not mark confirmed_static on cheap tier

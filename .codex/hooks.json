@@ -1,0 +1,18 @@
+{
+  "description": "Sentinel Auditor read-only policy guard.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python hooks/policy_guard.py",
+            "commandWindows": "py -3 hooks\\policy_guard.py",
+            "statusMessage": "Sentinel policy check"
+          }
+        ]
+      }
+    ]
+  }
+}

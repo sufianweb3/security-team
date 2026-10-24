@@ -1,0 +1,132 @@
+{
+  "findings": [
+    {
+      "target_id": "vulnapp",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/639.html",
+        "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      ],
+      "limitations": [
+        "Assumes no ownership enforcement outside this file (e.g. DB RLS); none was found in the snapshot."
+      ],
+      "preconditions": [
+        "Attacker holds any valid account (login_required is the only guard)",
+        "Invoice ids are guessable integers (route uses <int:invoice_id>)"
+      ],
+      "title": "Any authenticated user can read any invoice (IDOR in get_invoice)",
+      "category": "idor",
+      "cwe": "CWE-639",
+      "component": "app",
+      "locations": [
+        {
+          "file": "app/app.py",
+          "start_line": 22,
+          "end_line": 29,
+          "function": "get_invoice",
+          "role": "sink"
+        },
+        {
+          "file": "app/app.py",
+          "start_line": 84,
+          "end_line": 84,
+          "function": "apply_coupon",
+          "role": "check"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 26,
+          "end_line": 29,
+          "content": "row = db().execute(\"SELECT id, owner_id, total FROM invoices WHERE id = ?\", (invoice_id,)).fetchone()\nif row is None:\n    abort(404)\nreturn jsonify({\"id\": row[0], \"owner\": row[1], \"total\": row[2]})"
+        },
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 84,
+          "end_line": 84,
+          "content": "cart = db().execute(\"SELECT id, total FROM carts WHERE user_id = ?\", (current_user().id,)).fetchone()"
+        }
+      ],
+      "description": "get_invoice looks up an invoice solely by the client-supplied id. owner_id is fetched and even returned, but never compared to the session user. Elsewhere (apply_coupon) the code scopes queries by current_user().id, showing the intended ownership pattern.",
+      "attack_scenario": "A logged-in user changes the numeric id in /invoices/<id> to another customer's invoice id and receives that invoice's owner and total. (Not executed.)",
+      "expected_boundary": "A user can read only invoices where owner_id equals their user id.",
+      "observed_behavior": "Query filters by id only; no owner comparison on any path in the handler.",
+      "technical_impact": "Horizontal disclosure of all customers' invoice data (owner id, totals).",
+      "severity": "high",
+      "confidence": "high",
+      "verification": {
+        "status": "potential"
+      },
+      "safe_validation": "Static: confirm no middleware or DB row-level policy enforces ownership; optionally write a unit test against a local throwaway DB fixture (never production).",
+      "remediation": "Filter by owner: WHERE id = ? AND owner_id = ? with current_user().id, or check row[1] == current_user().id and return 404 otherwise.",
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-authz"
+      }
+    },
+    {
+      "target_id": "vulnapp",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/862.html"
+      ],
+      "limitations": [],
+      "preconditions": [
+        "Attacker holds any valid (non-admin) account"
+      ],
+      "title": "DELETE /admin/users/<id> lacks the admin role check its sibling enforces",
+      "category": "missing-authorization",
+      "cwe": "CWE-862",
+      "component": "app",
+      "locations": [
+        {
+          "file": "app/app.py",
+          "start_line": 59,
+          "end_line": 65,
+          "function": "delete_user",
+          "role": "sink"
+        },
+        {
+          "file": "app/app.py",
+          "start_line": 68,
+          "end_line": 74,
+          "function": "promote_user",
+          "role": "check"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 59,
+          "end_line": 63,
+          "content": "@app.route(\"/admin/users/<int:user_id>\", methods=[\"DELETE\"])\n@login_required\ndef delete_user(user_id):\n    db().execute(\"DELETE FROM users WHERE id = ?\", (user_id,))"
+        },
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 68,
+          "end_line": 71,
+          "content": "@app.route(\"/admin/users/<int:user_id>/promote\", methods=[\"POST\"])\n@login_required\n@require_role(\"admin\")"
+        }
+      ],
+      "description": "delete_user is an admin route guarded only by login_required, while the adjacent promote_user also applies require_role(\"admin\"). The OpenAPI spec additionally declares this DELETE with security: [].",
+      "attack_scenario": "A regular user issues DELETE /admin/users/<id> and the account row is deleted. (Not executed.)",
+      "expected_boundary": "Only administrators can delete users.",
+      "observed_behavior": "Any authenticated user passes the only guard.",
+      "technical_impact": "Unauthorized deletion of arbitrary user accounts (integrity/availability).",
+      "severity": "high",
+      "confidence": "high",
+      "verification": {
+        "status": "potential"
+      },
+      "safe_validation": "Static comparison of decorators; confirm no global before_request role check exists.",
+      "remediation": "Add @require_role(\"admin\") to delete_user and a regression test asserting 403 for non-admins.",
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-authz"
+      }
+    }
+  ]
+}

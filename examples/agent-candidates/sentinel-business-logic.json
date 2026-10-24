@@ -1,0 +1,52 @@
+{
+  "findings": [
+    {
+      "target_id": "vulnapp",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/840.html"
+      ],
+      "limitations": [],
+      "preconditions": [
+        "Attacker has an account and any valid coupon code"
+      ],
+      "title": "Single-use coupon is never enforced and discounts compound on repeat calls",
+      "category": "business-logic",
+      "cwe": "CWE-840",
+      "component": "app",
+      "locations": [
+        {
+          "file": "app/app.py",
+          "start_line": 77,
+          "end_line": 89,
+          "function": "apply_coupon",
+          "role": "sink"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "code_excerpt",
+          "file": "app/app.py",
+          "start_line": 81,
+          "end_line": 87,
+          "content": "coupon = db().execute(\"SELECT percent, single_use FROM coupons WHERE code = ?\", (code,)).fetchone()\nnew_total = cart[1] * (100 - coupon[0]) / 100\ndb().execute(\"UPDATE carts SET total = ? WHERE id = ?\", (new_total, cart[0]))"
+        }
+      ],
+      "description": "apply_coupon selects single_use but never checks or records redemption, and applies the percentage to the already-discounted cart total. Repeating the request reduces the total geometrically toward zero.",
+      "attack_scenario": "Calling /cart/apply-coupon N times with a 20% code reduces the total to 0.8^N of the original. (Not executed.)",
+      "expected_boundary": "A single-use coupon reduces one order once.",
+      "observed_behavior": "No redemption record; discount re-applied on each call.",
+      "technical_impact": "Fraudulent discounts / goods obtained below price.",
+      "severity": "high",
+      "confidence": "medium",
+      "verification": {
+        "status": "potential"
+      },
+      "safe_validation": "Static trace of apply_coupon; local unit test on a throwaway DB calling the handler twice.",
+      "remediation": "Record redemptions (unique constraint on coupon+user/order), enforce single_use, compute discounts from the undiscounted subtotal, make the operation idempotent.",
+      "source": {
+        "kind": "agent",
+        "name": "sentinel-business-logic"
+      }
+    }
+  ]
+}

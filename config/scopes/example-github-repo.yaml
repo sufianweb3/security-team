@@ -1,0 +1,13 @@
+# Example: public GitHub repository at a pinned commit (source + dependencies, no live target).
+scope_version: 1
+assessment:
+  id: some-oss-review
+  name: OSS library source review
+  type: [source_code, dependency_analysis]
+authorization:
+  status: authorized
+  basis: public_source_review
+  authorized_by: you (reviewing public source only; no live systems)
+targets:
+  repositories:
+    - {id: lib, url: "https://github.com/OWNER/REPO", commit: "REPLACE_WITH_40_HEX_COMMIT_SHA_____________"}

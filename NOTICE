@@ -1,0 +1,15 @@
+# NOTICE
+
+Sentinel Auditor
+Copyright (c) 2026 Abu Sufian Shad
+
+This project is licensed under the MIT License; see [LICENSE](LICENSE).
+
+Third-party tools invoked by this project (semgrep, bandit, gitleaks, osv-scanner)
+are **not bundled** with this repository. They are installed separately and remain
+governed by their own licenses. See [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+for versions, sources and license notes.
+
+The intentionally vulnerable application under `fixtures/vulnapp/` contains fake
+credentials and deliberately insecure code for training and testing. It must never
+be deployed or run in a production environment.

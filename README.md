@@ -279,6 +279,6 @@ guard) to make a feature work. For vulnerability reports about Sentinel itself, 
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Third-party tools invoked by this project (semgrep, bandit,
-gitleaks, osv-scanner) are not bundled and keep their own licenses; see
+MIT — see [LICENSE](LICENSE) and [NOTICE](NOTICE). Third-party tools invoked by this project
+(semgrep, bandit, gitleaks, osv-scanner) are not bundled and keep their own licenses; see
 [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
